@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V20 - Fully Editable Edition</title>
+    <title>SaaS Commercial OS V21 - Mutex Enforced</title>
     <style>
-        /* ================= 样式底座 (V19) ================= */
+        /* ================= 样式继承自 V20 (保持不变) ================= */
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
@@ -146,7 +146,7 @@
 <div class="app-window">
     
     <div class="sidebar">
-        <div class="logo-box">💠 SaaS OS V20</div>
+        <div class="logo-box">💠 SaaS OS V21</div>
 
         <div class="nav-group">
             <div class="nav-label">Layer 1 & 2: 资产定义</div>
@@ -309,9 +309,8 @@
 <div class="mask" id="drawer-overlay" onclick="closeDrawer()" style="z-index:150;"></div>
 
 <script>
-    // ================== 1. DATA STORE (With LocalStorage) ==================
+    // ================== 1. DATA STORE ==================
     
-    // Default Data
     const defaults = {
         products: [
             { id: 'p_basic', name: 'Basic', code: 'BSC', icon: 'B' },
@@ -363,8 +362,8 @@
     let products, features, capabilities, rules, skus, tenants;
 
     function initData() {
-        if(localStorage.getItem('saas_demo_v20')) {
-            const saved = JSON.parse(localStorage.getItem('saas_demo_v20'));
+        if(localStorage.getItem('saas_demo_v21')) {
+            const saved = JSON.parse(localStorage.getItem('saas_demo_v21'));
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
         } else {
@@ -374,7 +373,7 @@
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v20', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v21', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -393,10 +392,10 @@
     // ================== 2. STATE & ROUTING ==================
     let currView = 'products';
     let activeProdId = null;
+    let editingId = null;
     let editSubRef = null;
     let drawerAddonId = null;
     let ruleTab = 'COMMERCIAL';
-    let editingId = null; // Universal ID for editing
 
     function route(view) {
         currView = view;
@@ -559,8 +558,7 @@
         const plans = skus.filter(s => s.pid === activeProdId && s.type === 'PLAN');
         const addons = skus.filter(s => s.pid === activeProdId && s.type === 'ADDON');
         let prodCaps = capabilities.filter(c => c.prod === activeProdId);
-        if(prodCaps.length === 0) prodCaps = [{id:'temp', name:'(请先定义能力)', scope:'-'}]
-
+        
         c.innerHTML = `
         <h3 style="font-size:15px; margin-bottom:12px;">Plan Matrix</h3>
         <div class="matrix-container">
@@ -670,8 +668,75 @@
         c.innerHTML = html;
     }
 
-    // ================== 4. LOGIC & ACTIONS ==================
+    // ================== 4. LOGIC & MUTEX CHECK ==================
 
+    // *** NEW: Conflict Checker ***
+    function checkMutex(sku, capIdToAdd) {
+        const capToAdd = capabilities.find(c => c.id === capIdToAdd);
+        if (!capToAdd) return null;
+
+        for (const existCapId of sku.ents) {
+            const existCap = capabilities.find(c => c.id === existCapId);
+            if (!existCap) continue;
+
+            // 1. Direct Capability Conflict
+            const capConflict = rules.find(r =>
+                r.type === 'MUTEX' &&
+                ((r.src === capIdToAdd && r.tgt === existCapId) || (r.src === existCapId && r.tgt === capIdToAdd))
+            );
+            if (capConflict) return { conflict: true, msg: `规则冲突: [${capToAdd.name}] 与已选的 [${existCap.name}] 互斥。\n规则: ${capConflict.desc}` };
+
+            // 2. Underlying Feature Conflict
+            if (capToAdd.fid && existCap.fid) {
+                const featConflict = rules.find(r =>
+                    r.type === 'MUTEX' &&
+                    ((r.src === capToAdd.fid && r.tgt === existCap.fid) || (r.src === existCap.fid && r.tgt === capToAdd.fid))
+                );
+                if (featConflict) return { conflict: true, msg: `底层技术冲突: [${capToAdd.name}] 与 [${existCap.name}] 无法共存。\n规则: ${featConflict.desc}` };
+            }
+        }
+        return null;
+    }
+
+    function toggleEnt(sid, cid) {
+        const s = skus.find(x => x.id === sid);
+        
+        // If checking (adding)
+        if (!s.ents.includes(cid)) {
+            const check = checkMutex(s, cid);
+            if (check && check.conflict) {
+                alert(check.msg);
+                return; // Block the toggle
+            }
+            s.ents.push(cid);
+        } else {
+            // Unchecking (always allowed)
+            s.ents = s.ents.filter(x => x !== cid);
+        }
+        
+        saveData();
+        render();
+    }
+
+    function toggleAddonEnt(cid) {
+        const s = skus.find(x => x.id === drawerAddonId);
+        
+        if (!s.ents.includes(cid)) {
+            const check = checkMutex(s, cid);
+            if (check && check.conflict) {
+                alert(check.msg);
+                return;
+            }
+            s.ents.push(cid);
+        } else {
+            s.ents = s.ents.filter(x => x !== cid);
+        }
+        
+        saveData();
+        openDrawer(drawerAddonId); // Refresh drawer
+    }
+
+    // --- Modal Logic ---
     function openModal(type, id = null) {
         document.querySelectorAll('.mask').forEach(e=>e.style.display='none');
         document.getElementById('modal-'+type).style.display='flex';
@@ -679,12 +744,11 @@
         editingId = id;
         const isEdit = !!id;
         
-        // Reset Logic
         if(type === 'feature') {
             document.getElementById('feat-modal-title').innerText = isEdit ? '编辑 Feature' : '注册 Feature';
             const item = isEdit ? features.find(x=>x.id===id) : {id:'', name:'', owner:''};
             document.getElementById('feat-id').value = item.id;
-            document.getElementById('feat-id').disabled = isEdit; // ID cannot change
+            document.getElementById('feat-id').disabled = isEdit;
             document.getElementById('feat-name').value = item.name;
             document.getElementById('feat-owner').value = item.owner;
         }
@@ -693,7 +757,6 @@
             const item = isEdit ? capabilities.find(x=>x.id===id) : {name:'', scope:'WORKSPACE', fid:'', prod:''};
             document.getElementById('cap-feat').innerHTML = '<option value="">(无)</option>' + features.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
             document.getElementById('cap-prod').innerHTML = products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-            
             document.getElementById('cap-name').value = item.name;
             document.getElementById('cap-scope').value = item.scope;
             document.getElementById('cap-feat').value = item.fid || '';
@@ -703,7 +766,7 @@
             document.getElementById('rule-modal-title').innerText = isEdit ? '编辑规则' : '新建规则';
             const item = isEdit ? rules.find(x=>x.id===id) : {level:ruleTab, type:'DEPEND', desc:'', src:'', tgt:''};
             document.getElementById('rule-level').value = item.level;
-            updateRuleModalUI(); // Populate Selects based on Level
+            updateRuleModalUI(); 
             document.getElementById('rule-type').value = item.type;
             document.getElementById('rule-desc').value = item.desc;
             document.getElementById('rule-src').value = item.src;
@@ -721,13 +784,12 @@
             const item = isEdit ? skus.find(x=>x.id===id) : {name:'', type:'PLAN'};
             document.getElementById('sku-name').value = item.name;
             document.getElementById('sku-type').value = item.type;
-            document.getElementById('sku-type').disabled = isEdit; // Prevent changing type
+            document.getElementById('sku-type').disabled = isEdit;
         }
         if(type === 'new-t') {
             document.getElementById('tenant-modal-title').innerText = isEdit ? '编辑客户名称' : '签约新客户';
             const item = isEdit ? tenants.find(x=>x.id===id) : {name:''};
             document.getElementById('new-t-name').value = item.name;
-            // Hide initial subscription fields if editing name
             document.getElementById('new-t-initial-setup').style.display = isEdit ? 'none' : 'block';
             if(!isEdit) {
                 document.getElementById('new-t-prod').innerHTML = products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
@@ -742,7 +804,6 @@
         const level = document.getElementById('rule-level').value;
         const srcSel = document.getElementById('rule-src');
         const tgtSel = document.getElementById('rule-tgt');
-        
         let options = '';
         if(level === 'COMMERCIAL') {
             options += `<optgroup label="Products">` + products.map(p => `<option value="${p.id}">${p.name}</option>`).join('') + `</optgroup>`;
@@ -751,8 +812,7 @@
             options += `<optgroup label="Capabilities">` + capabilities.map(c => `<option value="${c.id}">${c.name}</option>`).join('') + `</optgroup>`;
             options += `<optgroup label="Features">` + features.map(f => `<option value="${f.id}">${f.name}</option>`).join('') + `</optgroup>`;
         }
-        srcSel.innerHTML = options;
-        tgtSel.innerHTML = options;
+        srcSel.innerHTML = options; tgtSel.innerHTML = options;
     }
 
     // CRUD Ops
@@ -799,8 +859,7 @@
             } else {
                 rules.push({id:'r'+Date.now(),level,type,desc,src,tgt}); 
             }
-            saveData(); closeModals(); 
-            ruleTab = level; render();
+            saveData(); closeModals(); ruleTab = level; render();
         }
     }
     function saveProduct() {
@@ -817,16 +876,6 @@
             saveData(); closeModals(); render();
         }
     }
-    function deleteItem(type, id) {
-        if(!confirm('确定删除?')) return;
-        if(type==='feature') features=features.filter(x=>x.id!==id);
-        if(type==='cap') capabilities=capabilities.filter(x=>x.id!==id);
-        if(type==='rule') rules=rules.filter(x=>x.id!==id);
-        if(type==='prod') { products=products.filter(x=>x.id!==id); skus=skus.filter(x=>x.pid!==id); }
-        if(type==='sku') skus=skus.filter(x=>x.id!==id);
-        saveData(); render();
-    }
-
     function saveSku() {
         const name = document.getElementById('sku-name').value;
         const type = document.getElementById('sku-type').value;
@@ -839,19 +888,6 @@
             }
             saveData(); closeModals(); render();
         }
-    }
-    function toggleEnt(sid, cid) {
-        const s = skus.find(x=>x.id===sid);
-        if(s.ents.includes(cid)) s.ents = s.ents.filter(x=>x!==cid);
-        else s.ents.push(cid);
-        saveData(); render();
-    }
-
-    function updateSkuOptions() {
-        const pid = document.getElementById('new-t-prod').value;
-        const sSel = document.getElementById('new-t-sku');
-        const availSkus = skus.filter(s => s.pid === pid && s.type === 'PLAN');
-        sSel.innerHTML = availSkus.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     }
     function saveNewTenant() {
         const name = document.getElementById('new-t-name').value;
@@ -867,6 +903,21 @@
             saveData(); closeModals(); render();
         }
     }
+    function updateSkuOptions() {
+        const pid = document.getElementById('new-t-prod').value;
+        const sSel = document.getElementById('new-t-sku');
+        const availSkus = skus.filter(s => s.pid === pid && s.type === 'PLAN');
+        sSel.innerHTML = availSkus.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    }
+    function deleteItem(type, id) {
+        if(!confirm('确定删除?')) return;
+        if(type==='feature') features=features.filter(x=>x.id!==id);
+        if(type==='cap') capabilities=capabilities.filter(x=>x.id!==id);
+        if(type==='rule') rules=rules.filter(x=>x.id!==id);
+        if(type==='prod') { products=products.filter(x=>x.id!==id); skus=skus.filter(x=>x.pid!==id); }
+        if(type==='sku') skus=skus.filter(x=>x.id!==id);
+        saveData(); render();
+    }
     function openSubModal(tid, skuId) {
         const t = tenants.find(x=>x.id===tid);
         const sub = t.subs.find(x=>x.skuId===skuId);
@@ -879,8 +930,7 @@
         if(editSubRef) {
             editSubRef.sub.seats = document.getElementById('sub-seats').value;
             editSubRef.sub.status = document.getElementById('sub-status').value;
-            saveData();
-            closeModals(); render();
+            saveData(); closeModals(); render();
         }
     }
     
@@ -908,13 +958,6 @@
         document.getElementById('drawer').classList.remove('open');
         setTimeout(()=>document.getElementById('drawer-overlay').style.display='none',300);
         render();
-    }
-    function toggleAddonEnt(cid) {
-        const s = skus.find(x=>x.id===drawerAddonId);
-        if(s.ents.includes(cid)) s.ents = s.ents.filter(x=>x!==cid);
-        else s.ents.push(cid);
-        saveData();
-        openDrawer(drawerAddonId);
     }
 
     // Init
