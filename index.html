@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V19 - Local Persistence</title>
+    <title>SaaS Commercial OS V20 - Fully Editable Edition</title>
     <style>
-        /* ================= 样式保持 V18 不变 ================= */
+        /* ================= 样式底座 (V19) ================= */
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
@@ -34,15 +34,13 @@
             display: flex; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.3);
         }
 
-        /* --- Sidebar --- */
+        /* Sidebar */
         .sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); color: #cbd5e1; display: flex; flex-direction: column; flex-shrink: 0;}
         .logo-box { height: 64px; border-bottom: 1px solid #1e293b; display: flex; align-items: center; padding: 0 24px; font-weight: 700; font-size: 16px; color: white; gap: 10px;}
         
         .nav-group { padding: 24px 16px 0; }
         .nav-label { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 8px; padding-left: 12px; }
-        .nav-item {
-            padding: 10px 12px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; transition: 0.2s;
-        }
+        .nav-item { padding: 10px 12px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; transition: 0.2s; }
         .nav-item:hover { background: #334155; color: white; }
         .nav-item.active { background: var(--primary); color: white; }
         .nav-icon { margin-right: 10px; width: 20px; text-align: center; }
@@ -50,13 +48,13 @@
         .reset-btn { margin: auto 16px 16px; padding: 10px; background: #334155; color: #f87171; border: 1px solid #475569; border-radius: 6px; cursor: pointer; font-size: 12px; text-align: center; transition: 0.2s; }
         .reset-btn:hover { background: #1e293b; border-color: #f87171; }
 
-        /* --- Main Content --- */
+        /* Main Content */
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .header { height: 64px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; flex-shrink: 0;}
         .page-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
         .content { flex: 1; overflow-y: auto; padding: 32px; }
 
-        /* --- UI Components --- */
+        /* Components */
         .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .card-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; font-weight: 600; font-size: 15px; }
         
@@ -65,8 +63,9 @@
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-outline { background: white; border-color: var(--border); color: var(--text-main); }
         .btn-outline:hover { background: #f1f5f9; }
-        .btn-icon { padding: 4px 8px; background: transparent; color: var(--text-sub); font-size: 14px; border:none; cursor: pointer;}
-        .btn-icon:hover { color: var(--text-main); background: #f1f5f9; border-radius: 4px; }
+        .btn-icon { padding: 6px; background: transparent; color: var(--text-sub); font-size: 14px; border:none; cursor: pointer; border-radius: 4px; }
+        .btn-icon:hover { color: var(--text-main); background: #e2e8f0; }
+        .btn-icon.danger:hover { color: #dc2626; background: #fee2e2; }
 
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px 24px; font-size: 12px; color: var(--text-sub); border-bottom: 1px solid var(--border); background: #f8fafc; font-weight: 600; position: sticky; top: 0; z-index: 10; }
@@ -74,7 +73,6 @@
         tr:last-child td { border-bottom: none; }
         
         .code-pill { font-family: monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569; border: 1px solid #e2e8f0; font-size: 12px;}
-
         .tag { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; }
         .tag-blue { background: #eff6ff; color: #1d4ed8; }
         .tag-orange { background: #fff7ed; color: #c2410c; }
@@ -83,12 +81,12 @@
         .tag-red { background: #fef2f2; color: #991b1b; }
         .tag-yellow { background: #fef3c7; color: #b45309; }
 
-        /* --- Packaging Views --- */
+        /* Packaging Views */
         .prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
         .prod-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; position: relative; }
         .prod-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); border-color: var(--primary); }
         .prod-icon { width: 48px; height: 48px; background: #eff6ff; color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 16px; font-weight: bold;}
-        .prod-actions { position: absolute; top: 16px; right: 16px; opacity: 0; transition: 0.2s; }
+        .prod-actions { position: absolute; top: 16px; right: 16px; opacity: 0; transition: 0.2s; display: flex; gap: 4px; }
         .prod-card:hover .prod-actions { opacity: 1; }
         
         .rel-badge { margin-top: 12px; font-size: 12px; padding: 6px 10px; background: #fffbeb; color: #b45309; border-radius: 6px; border: 1px solid #fcd34d; display: flex; align-items: center; gap: 6px; }
@@ -100,33 +98,33 @@
         .check-box { width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 4px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
         .check-box.checked { background: var(--primary); border-color: var(--primary); color: white; }
         .check-box.checked::after { content: '✓'; font-size: 12px; font-weight: bold; }
+        
+        /* SKU Header Actions */
+        .sku-header-row { display: flex; justify-content: space-between; align-items: center; }
+        .sku-actions { visibility: hidden; display: flex; gap: 2px; }
+        th:hover .sku-actions { visibility: visible; }
 
         /* Add-ons */
         .addon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .addon-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; height: 140px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;}
+        .addon-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; height: 140px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; position: relative;}
         .addon-card:hover { border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .addon-card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 2px; opacity: 0; transition: 0.2s; }
+        .addon-card:hover .addon-card-actions { opacity: 1; }
 
-        /* --- Tenant Card --- */
+        /* Tenant Card */
         .tenant-card { background: white; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: 0.2s; }
-        .tenant-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         .tenant-header { padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff; }
         .tenant-body { padding: 20px 24px; background: #f8fafc; }
-        
         .sub-group { margin-bottom: 20px; border: 1px solid #e2e8f0; background: white; border-radius: 8px; overflow: hidden; }
-        .sub-group:last-child { margin-bottom: 0; }
         .sub-group-header { padding: 10px 16px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
-        
         .sub-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f1f5f9; }
-        .sub-row:last-child { border-bottom: none; }
-        .sub-name { font-weight: 500; font-size: 14px; color: var(--text-main); }
-        .sub-meta { font-size: 12px; color: #94a3b8; display: flex; gap: 15px; align-items: center; }
-
-        /* --- Rule Tabs --- */
+        
+        /* Rule Tabs */
         .rule-tabs { display: flex; gap: 20px; padding: 0 24px; border-bottom: 1px solid var(--border); background: white; margin-bottom: 20px; }
         .rule-tab { padding: 16px 0; font-size: 14px; font-weight: 500; color: var(--text-sub); cursor: pointer; border-bottom: 2px solid transparent; }
         .rule-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-        /* --- Modals & Drawers --- */
+        /* Modals & Drawers */
         .mask { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; }
         .modal { background: white; width: 550px; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; }
         .modal-head { padding: 16px 24px; background: #f8fafc; border-bottom: 1px solid var(--border); font-weight: 600; display: flex; justify-content: space-between; }
@@ -139,6 +137,7 @@
         .form-group { margin-bottom: 16px; }
         .form-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-sub); }
         .form-input, .form-select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .form-input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
 
     </style>
 </head>
@@ -147,7 +146,7 @@
 <div class="app-window">
     
     <div class="sidebar">
-        <div class="logo-box">💠 SaaS OS V19</div>
+        <div class="logo-box">💠 SaaS OS V20</div>
 
         <div class="nav-group">
             <div class="nav-label">Layer 1 & 2: 资产定义</div>
@@ -193,9 +192,9 @@
 
 <div class="mask" id="modal-feature">
     <div class="modal">
-        <div class="modal-head"><span>注册 Feature</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-head"><span id="feat-modal-title">注册 Feature</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
-            <div class="form-group"><label class="form-label">技术 ID</label><input class="form-input" id="feat-id" placeholder="feat_key"></div>
+            <div class="form-group"><label class="form-label">技术 ID (不可修改)</label><input class="form-input" id="feat-id" placeholder="feat_key"></div>
             <div class="form-group"><label class="form-label">名称</label><input class="form-input" id="feat-name"></div>
             <div class="form-group"><label class="form-label">技术负责人</label><input class="form-input" id="feat-owner"></div>
         </div>
@@ -205,7 +204,7 @@
 
 <div class="mask" id="modal-cap">
     <div class="modal">
-        <div class="modal-head"><span>定义 Capability</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-head"><span id="cap-modal-title">定义 Capability</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
             <div class="form-group"><label class="form-label">能力名称</label><input class="form-input" id="cap-name"></div>
             <div class="form-group"><label class="form-label">作用域</label>
@@ -224,7 +223,7 @@
 
 <div class="mask" id="modal-rule">
     <div class="modal">
-        <div class="modal-head"><span>新建规则</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-head"><span id="rule-modal-title">新建规则</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
             <div class="form-group"><label class="form-label">规则层级</label>
                 <select class="form-select" id="rule-level" onchange="updateRuleModalUI()">
@@ -250,7 +249,7 @@
 
 <div class="mask" id="modal-prod">
     <div class="modal">
-        <div class="modal-head"><span>新建产品线</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-head"><span id="prod-modal-title">新建产品线</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
             <div class="form-group"><label class="form-label">产品名称</label><input class="form-input" id="prod-name"></div>
             <div class="form-group"><label class="form-label">代码 (Code)</label><input class="form-input" id="prod-code"></div>
@@ -262,7 +261,7 @@
 
 <div class="mask" id="modal-sku">
     <div class="modal">
-        <div class="modal-head"><span>新建 SKU</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-head"><span id="sku-modal-title">新建 SKU</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
             <div class="form-group"><label class="form-label">SKU 名称</label><input class="form-input" id="sku-name"></div>
             <div class="form-group"><label class="form-label">类型</label>
@@ -275,13 +274,15 @@
 
 <div class="mask" id="modal-new-t">
     <div class="modal">
-        <div class="modal-head"><span>签约新客户</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-head"><span id="tenant-modal-title">签约新客户</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
             <div class="form-group"><label class="form-label">企业名称</label><input class="form-input" id="new-t-name"></div>
-            <div class="form-group"><label class="form-label">首购产品</label><select class="form-select" id="new-t-prod" onchange="updateSkuOptions()"></select></div>
-            <div class="form-group"><label class="form-label">选择 SKU</label><select class="form-select" id="new-t-sku"></select></div>
+            <div id="new-t-initial-setup">
+                <div class="form-group"><label class="form-label">首购产品</label><select class="form-select" id="new-t-prod" onchange="updateSkuOptions()"></select></div>
+                <div class="form-group"><label class="form-label">选择 SKU</label><select class="form-select" id="new-t-sku"></select></div>
+            </div>
         </div>
-        <div class="modal-foot"><button class="btn btn-primary" onclick="saveNewTenant()">签约</button></div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveNewTenant()">保存</button></div>
     </div>
 </div>
 
@@ -310,7 +311,7 @@
 <script>
     // ================== 1. DATA STORE (With LocalStorage) ==================
     
-    // Default Data (V18 Data)
+    // Default Data
     const defaults = {
         products: [
             { id: 'p_basic', name: 'Basic', code: 'BSC', icon: 'B' },
@@ -359,27 +360,21 @@
         ]
     };
 
-    // Global variables
     let products, features, capabilities, rules, skus, tenants;
 
-    // Initialize Data (Load from LS or Default)
     function initData() {
-        if(localStorage.getItem('saas_demo_v19')) {
-            const saved = JSON.parse(localStorage.getItem('saas_demo_v19'));
-            products = saved.products;
-            features = saved.features;
-            capabilities = saved.capabilities;
-            rules = saved.rules;
-            skus = saved.skus;
-            tenants = saved.tenants;
+        if(localStorage.getItem('saas_demo_v20')) {
+            const saved = JSON.parse(localStorage.getItem('saas_demo_v20'));
+            products = saved.products; features = saved.features; capabilities = saved.capabilities;
+            rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
         } else {
-            resetData(false); // Load defaults without reload
+            resetData(false);
         }
     }
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v19', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v20', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -393,7 +388,7 @@
         if(reload) location.reload();
     }
 
-    initData(); // Run on startup
+    initData();
 
     // ================== 2. STATE & ROUTING ==================
     let currView = 'products';
@@ -401,6 +396,7 @@
     let editSubRef = null;
     let drawerAddonId = null;
     let ruleTab = 'COMMERCIAL';
+    let editingId = null; // Universal ID for editing
 
     function route(view) {
         currView = view;
@@ -449,7 +445,6 @@
 
     // ================== 3. VIEWS ==================
 
-    // 1. Features
     function renderFeatures(c, h, ha) {
         h.innerText = 'Feature Registry (技术资产)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('feature')">+ 注册 Feature</button>`;
@@ -462,14 +457,16 @@
                         <td><code class="code-pill">${f.id}</code></td>
                         <td style="font-weight:500">${f.name}</td>
                         <td>${f.owner}</td>
-                        <td><button class="btn btn-icon" onclick="deleteItem('feature','${f.id}')">🗑️</button></td>
+                        <td>
+                            <button class="btn btn-icon" onclick="openModal('feature', '${f.id}')">✏️</button>
+                            <button class="btn btn-icon danger" onclick="deleteItem('feature','${f.id}')">🗑️</button>
+                        </td>
                     </tr>`).join('')}
                 </tbody>
             </table>
         </div>`;
     }
 
-    // 2. Capabilities
     function renderCaps(c, h, ha) {
         h.innerText = 'Capability Library (商业能力)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('cap')">+ 定义 Capability</button>`;
@@ -487,7 +484,10 @@
                         <td><span class="tag ${tag}">${cap.scope}</span></td>
                         <td>${f ? f.name : '<span style="color:#ccc">-</span>'}</td>
                         <td>${p ? p.code : '-'}</td>
-                        <td><button class="btn btn-icon" onclick="deleteItem('cap','${cap.id}')">🗑️</button></td>
+                        <td>
+                            <button class="btn btn-icon" onclick="openModal('cap', '${cap.id}')">✏️</button>
+                            <button class="btn btn-icon danger" onclick="deleteItem('cap','${cap.id}')">🗑️</button>
+                        </td>
                     </tr>`;
                 }).join('')}
                 </tbody>
@@ -495,7 +495,6 @@
         </div>`;
     }
 
-    // 3. Rules
     function renderRules(c, h, ha) {
         h.innerText = '规则引擎 (Rule Engine)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('rule')">+ 新建规则</button>`;
@@ -518,18 +517,16 @@
                     <div style="flex:1;">
                         <div style="font-weight:600;">${r.desc}</div>
                         <div style="font-size:12px; color:#64748b;">
-                            <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">${s}</span>
-                            ➡ 
-                            <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">${t}</span>
+                            <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">${s}</span> ➡ <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">${t}</span>
                         </div>
                     </div>
-                    <button class="btn btn-icon" onclick="deleteItem('rule','${r.id}')">🗑️</button>
+                    <button class="btn btn-icon" onclick="openModal('rule', '${r.id}')">✏️</button>
+                    <button class="btn btn-icon danger" onclick="deleteItem('rule','${r.id}')">🗑️</button>
                 </div>`;
             }).join('')}
         </div>`;
     }
 
-    // 4. Products
     function renderProducts(c, h, ha) {
         h.innerText = '产品线管理 (Product Lines)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('prod')">+ 新建产品线</button>`;
@@ -539,14 +536,13 @@
             return `
             <div class="prod-card" onclick="enterProduct('${p.id}')">
                 <div class="prod-actions" onclick="event.stopPropagation()">
-                    <button class="btn btn-icon" style="color:#ef4444" onclick="deleteItem('prod','${p.id}')">🗑️</button>
+                    <button class="btn btn-icon" onclick="openModal('prod', '${p.id}')">✏️</button>
+                    <button class="btn btn-icon danger" onclick="deleteItem('prod','${p.id}')">🗑️</button>
                 </div>
                 <div class="prod-icon">${p.icon}</div>
                 <div style="font-weight:600; font-size:16px;">${p.name}</div>
                 <div style="font-size:12px; color:#64748b; margin-top:4px;">Code: ${p.code}</div>
-                
                 ${deps.length > 0 ? `<div class="rel-badge">🔗 依赖: ${resolveName(deps[0].tgt, 'COMMERCIAL')}</div>` : ''}
-
                 <div style="margin-top:auto; padding-top:16px; font-size:13px; color:#64748b; border-top:1px solid #f1f5f9;">
                     ${skus.filter(s=>s.pid===p.id && s.type==='PLAN').length} Versions, 
                     ${skus.filter(s=>s.pid===p.id && s.type==='ADDON').length} Add-ons
@@ -555,7 +551,6 @@
         `;}).join('')}</div>`;
     }
 
-    // 5. SKU Studio
     function renderSkuStudio(c, h, ha) {
         const prod = products.find(p => p.id === activeProdId);
         h.innerHTML = `<span style="color:#64748b; cursor:pointer" onclick="route('products')">产品线</span> <span style="margin:0 8px; color:#cbd5e1">/</span> ${prod.name}`;
@@ -564,7 +559,8 @@
         const plans = skus.filter(s => s.pid === activeProdId && s.type === 'PLAN');
         const addons = skus.filter(s => s.pid === activeProdId && s.type === 'ADDON');
         let prodCaps = capabilities.filter(c => c.prod === activeProdId);
-        
+        if(prodCaps.length === 0) prodCaps = [{id:'temp', name:'(请先定义能力)', scope:'-'}]
+
         c.innerHTML = `
         <h3 style="font-size:15px; margin-bottom:12px;">Plan Matrix</h3>
         <div class="matrix-container">
@@ -573,9 +569,12 @@
                     <tr>
                         <th style="background:white; min-width:200px;">能力原子</th>
                         ${plans.map(p => `<th>
-                            <div style="display:flex; justify-content:space-between;">
+                            <div class="sku-header-row">
                                 ${p.name}
-                                <button class="btn btn-icon" style="padding:0;" onclick="deleteItem('sku','${p.id}')">🗑️</button>
+                                <div class="sku-actions">
+                                    <button class="btn btn-icon" onclick="openModal('sku', '${p.id}')">✏️</button>
+                                    <button class="btn btn-icon danger" onclick="deleteItem('sku','${p.id}')">🗑️</button>
+                                </div>
                             </div>
                         </th>`).join('')}
                     </tr>
@@ -599,24 +598,23 @@
             <div class="addon-card">
                 <div style="font-weight:600;">${a.name}</div>
                 <div style="font-size:13px; color:#64748b; margin-top:8px;">包含 ${a.ents.length} 项能力</div>
+                <div class="addon-card-actions">
+                    <button class="btn btn-icon" onclick="openModal('sku', '${a.id}')">✏️</button>
+                    <button class="btn btn-icon danger" onclick="deleteItem('sku','${a.id}')">🗑️</button>
+                </div>
                 <div style="margin-top:auto; padding-top:12px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between;">
                     <button class="btn btn-icon" onclick="openDrawer('${a.id}')">⚙️ 配置</button>
-                    <div style="display:flex; gap:8px;">
-                        <span class="tag tag-green">ADDON</span>
-                        <button class="btn btn-icon" style="color:#ef4444" onclick="deleteItem('sku','${a.id}')">🗑️</button>
-                    </div>
+                    <span class="tag tag-green">ADDON</span>
                 </div>
             </div>`).join('')}
         </div>`;
     }
 
-    // 6. Entitlements
     function renderEnts(c, h, ha) {
         h.innerText = '客户权益管理 (Tenant 360°)';
-        ha.innerHTML = `<button class="btn btn-primary" onclick="openNewTenantModal()">+ 签约新客户</button>`;
+        ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('new-t')">+ 签约新客户</button>`;
 
         let html = `<div style="display:flex; flex-direction:column; gap:20px;">`;
-        
         tenants.forEach(t => {
             const groupedSubs = {};
             t.subs.forEach(sub => {
@@ -629,8 +627,9 @@
             html += `
             <div class="tenant-card">
                 <div class="tenant-header">
-                    <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
                         <div style="font-weight:600; font-size:16px;">${t.name}</div>
+                        <button class="btn btn-icon" onclick="openModal('new-t', '${t.id}')">✏️</button>
                         <div style="font-size:12px; color:#64748b;">ID: ${t.id}</div>
                     </div>
                     <div class="tag tag-blue">${t.subs.length} Active Subscriptions</div>
@@ -667,31 +666,77 @@
                 </div>
             </div>`;
         });
-        
         html += `</div>`;
         c.innerHTML = html;
     }
 
-    // ================== 4. LOGIC & ACTIONS (Persistent) ==================
+    // ================== 4. LOGIC & ACTIONS ==================
 
-    function openModal(id) {
+    function openModal(type, id = null) {
         document.querySelectorAll('.mask').forEach(e=>e.style.display='none');
-        document.getElementById('modal-'+id).style.display='flex';
+        document.getElementById('modal-'+type).style.display='flex';
         
-        if(id === 'cap') {
-            document.getElementById('cap-feat').innerHTML = features.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+        editingId = id;
+        const isEdit = !!id;
+        
+        // Reset Logic
+        if(type === 'feature') {
+            document.getElementById('feat-modal-title').innerText = isEdit ? '编辑 Feature' : '注册 Feature';
+            const item = isEdit ? features.find(x=>x.id===id) : {id:'', name:'', owner:''};
+            document.getElementById('feat-id').value = item.id;
+            document.getElementById('feat-id').disabled = isEdit; // ID cannot change
+            document.getElementById('feat-name').value = item.name;
+            document.getElementById('feat-owner').value = item.owner;
+        }
+        if(type === 'cap') {
+            document.getElementById('cap-modal-title').innerText = isEdit ? '编辑 Capability' : '定义 Capability';
+            const item = isEdit ? capabilities.find(x=>x.id===id) : {name:'', scope:'WORKSPACE', fid:'', prod:''};
+            document.getElementById('cap-feat').innerHTML = '<option value="">(无)</option>' + features.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
             document.getElementById('cap-prod').innerHTML = products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+            
+            document.getElementById('cap-name').value = item.name;
+            document.getElementById('cap-scope').value = item.scope;
+            document.getElementById('cap-feat').value = item.fid || '';
+            document.getElementById('cap-prod').value = item.prod || '';
         }
-        if(id === 'rule') {
-            updateRuleModalUI();
+        if(type === 'rule') {
+            document.getElementById('rule-modal-title').innerText = isEdit ? '编辑规则' : '新建规则';
+            const item = isEdit ? rules.find(x=>x.id===id) : {level:ruleTab, type:'DEPEND', desc:'', src:'', tgt:''};
+            document.getElementById('rule-level').value = item.level;
+            updateRuleModalUI(); // Populate Selects based on Level
+            document.getElementById('rule-type').value = item.type;
+            document.getElementById('rule-desc').value = item.desc;
+            document.getElementById('rule-src').value = item.src;
+            document.getElementById('rule-tgt').value = item.tgt;
         }
-        if(id === 'new-t') {
-            document.getElementById('new-t-prod').innerHTML = products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-            updateSkuOptions();
+        if(type === 'prod') {
+            document.getElementById('prod-modal-title').innerText = isEdit ? '编辑产品线' : '新建产品线';
+            const item = isEdit ? products.find(x=>x.id===id) : {name:'', code:'', icon:'📦'};
+            document.getElementById('prod-name').value = item.name;
+            document.getElementById('prod-code').value = item.code;
+            document.getElementById('prod-icon').value = item.icon;
+        }
+        if(type === 'sku') {
+            document.getElementById('sku-modal-title').innerText = isEdit ? '编辑 SKU' : '新建 SKU';
+            const item = isEdit ? skus.find(x=>x.id===id) : {name:'', type:'PLAN'};
+            document.getElementById('sku-name').value = item.name;
+            document.getElementById('sku-type').value = item.type;
+            document.getElementById('sku-type').disabled = isEdit; // Prevent changing type
+        }
+        if(type === 'new-t') {
+            document.getElementById('tenant-modal-title').innerText = isEdit ? '编辑客户名称' : '签约新客户';
+            const item = isEdit ? tenants.find(x=>x.id===id) : {name:''};
+            document.getElementById('new-t-name').value = item.name;
+            // Hide initial subscription fields if editing name
+            document.getElementById('new-t-initial-setup').style.display = isEdit ? 'none' : 'block';
+            if(!isEdit) {
+                document.getElementById('new-t-prod').innerHTML = products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+                updateSkuOptions();
+            }
         }
     }
     
-    function closeModals() { document.querySelectorAll('.mask').forEach(e=>e.style.display='none'); }
+    function closeModals() { document.querySelectorAll('.mask').forEach(e=>e.style.display='none'); editingId = null; }
 
     function updateRuleModalUI() {
         const level = document.getElementById('rule-level').value;
@@ -710,19 +755,36 @@
         tgtSel.innerHTML = options;
     }
 
-    // CRUD Handlers with Save
+    // CRUD Ops
     function saveFeature() {
         const id = document.getElementById('feat-id').value;
         const name = document.getElementById('feat-name').value;
         const owner = document.getElementById('feat-owner').value;
-        if(id && name) { features.push({id,name,owner}); saveData(); closeModals(); render(); }
+        if(name) {
+            if(editingId) {
+                const item = features.find(x=>x.id===editingId);
+                item.name = name; item.owner = owner;
+            } else {
+                if(!id) return alert('ID required');
+                features.push({id,name,owner});
+            }
+            saveData(); closeModals(); render(); 
+        }
     }
     function saveCap() {
         const name = document.getElementById('cap-name').value;
         const scope = document.getElementById('cap-scope').value;
         const fid = document.getElementById('cap-feat').value;
         const prod = document.getElementById('cap-prod').value;
-        if(name) { capabilities.push({id:'c'+Date.now(),name,scope,fid,prod}); saveData(); closeModals(); render(); }
+        if(name) {
+            if(editingId) {
+                const item = capabilities.find(x=>x.id===editingId);
+                item.name=name; item.scope=scope; item.fid=fid; item.prod=prod;
+            } else {
+                capabilities.push({id:'c'+Date.now(),name,scope,fid,prod});
+            }
+            saveData(); closeModals(); render();
+        }
     }
     function saveRule() {
         const level = document.getElementById('rule-level').value;
@@ -730,17 +792,30 @@
         const desc = document.getElementById('rule-desc').value;
         const src = document.getElementById('rule-src').value;
         const tgt = document.getElementById('rule-tgt').value;
-        rules.push({id:'r'+Date.now(),level,type,desc,src,tgt}); 
-        saveData();
-        closeModals(); 
-        ruleTab = level;
-        render();
+        if(desc) {
+            if(editingId) {
+                const item = rules.find(x=>x.id===editingId);
+                item.level=level; item.type=type; item.desc=desc; item.src=src; item.tgt=tgt;
+            } else {
+                rules.push({id:'r'+Date.now(),level,type,desc,src,tgt}); 
+            }
+            saveData(); closeModals(); 
+            ruleTab = level; render();
+        }
     }
     function saveProduct() {
         const name = document.getElementById('prod-name').value;
         const code = document.getElementById('prod-code').value;
         const icon = document.getElementById('prod-icon').value || 'P';
-        if(name) { products.push({id:'p'+Date.now(),name,code,icon}); saveData(); closeModals(); render(); }
+        if(name) {
+            if(editingId) {
+                const item = products.find(x=>x.id===editingId);
+                item.name=name; item.code=code; item.icon=icon;
+            } else {
+                products.push({id:'p'+Date.now(),name,code,icon});
+            }
+            saveData(); closeModals(); render();
+        }
     }
     function deleteItem(type, id) {
         if(!confirm('确定删除?')) return;
@@ -749,25 +824,27 @@
         if(type==='rule') rules=rules.filter(x=>x.id!==id);
         if(type==='prod') { products=products.filter(x=>x.id!==id); skus=skus.filter(x=>x.pid!==id); }
         if(type==='sku') skus=skus.filter(x=>x.id!==id);
-        saveData();
-        render();
+        saveData(); render();
     }
 
     function saveSku() {
         const name = document.getElementById('sku-name').value;
         const type = document.getElementById('sku-type').value;
         if(name) {
-            skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, ents:[]});
-            saveData();
-            closeModals(); render();
+            if(editingId) {
+                const item = skus.find(x=>x.id===editingId);
+                item.name=name;
+            } else {
+                skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, ents:[]});
+            }
+            saveData(); closeModals(); render();
         }
     }
     function toggleEnt(sid, cid) {
         const s = skus.find(x=>x.id===sid);
         if(s.ents.includes(cid)) s.ents = s.ents.filter(x=>x!==cid);
         else s.ents.push(cid);
-        saveData();
-        render();
+        saveData(); render();
     }
 
     function updateSkuOptions() {
@@ -778,11 +855,16 @@
     }
     function saveNewTenant() {
         const name = document.getElementById('new-t-name').value;
-        const skuId = document.getElementById('new-t-sku').value;
-        if(name && skuId) {
-            tenants.push({id:'t'+Date.now(), name, subs:[{skuId, seats:100, status:'Active', end:'2025-12-31'}]});
-            saveData();
-            closeModals(); render();
+        if(name) {
+            if(editingId) {
+                const item = tenants.find(x=>x.id===editingId);
+                item.name = name;
+            } else {
+                const skuId = document.getElementById('new-t-sku').value;
+                if(!skuId) return;
+                tenants.push({id:'t'+Date.now(), name, subs:[{skuId, seats:100, status:'Active', end:'2025-12-31'}]});
+            }
+            saveData(); closeModals(); render();
         }
     }
     function openSubModal(tid, skuId) {
