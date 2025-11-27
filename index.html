@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V18 - Real World Data Edition</title>
+    <title>SaaS Commercial OS V19 - Local Persistence</title>
     <style>
-        /* ================= V17 样式底座 (保持不变) ================= */
+        /* ================= 样式保持 V18 不变 ================= */
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
@@ -46,6 +46,9 @@
         .nav-item:hover { background: #334155; color: white; }
         .nav-item.active { background: var(--primary); color: white; }
         .nav-icon { margin-right: 10px; width: 20px; text-align: center; }
+
+        .reset-btn { margin: auto 16px 16px; padding: 10px; background: #334155; color: #f87171; border: 1px solid #475569; border-radius: 6px; cursor: pointer; font-size: 12px; text-align: center; transition: 0.2s; }
+        .reset-btn:hover { background: #1e293b; border-color: #f87171; }
 
         /* --- Main Content --- */
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -144,7 +147,7 @@
 <div class="app-window">
     
     <div class="sidebar">
-        <div class="logo-box">💠 SaaS OS V18</div>
+        <div class="logo-box">💠 SaaS OS V19</div>
 
         <div class="nav-group">
             <div class="nav-label">Layer 1 & 2: 资产定义</div>
@@ -171,6 +174,10 @@
             <div class="nav-item" id="nav-ents" onclick="route('ents')">
                 <span class="nav-icon">👥</span> 客户权益管理
             </div>
+        </div>
+
+        <div class="reset-btn" onclick="resetData()">
+            🗑️ 重置演示数据 (Reset Demo)
         </div>
     </div>
 
@@ -301,90 +308,92 @@
 <div class="mask" id="drawer-overlay" onclick="closeDrawer()" style="z-index:150;"></div>
 
 <script>
-    // ================== 1. DATA INITIALIZATION (V18 Real-world Logic) ==================
+    // ================== 1. DATA STORE (With LocalStorage) ==================
     
-    // 1. Products
-    let products = [
-        { id: 'p_basic', name: 'Basic', code: 'BSC', icon: 'B' },
-        { id: 'p_proj', name: 'Project', code: 'PRJ', icon: 'P' },
-        { id: 'p_ipd', name: 'IPD', code: 'IPD', icon: 'I' },
-        { id: 'p_ltc', name: 'LTC', code: 'LTC', icon: 'L' }
-    ];
+    // Default Data (V18 Data)
+    const defaults = {
+        products: [
+            { id: 'p_basic', name: 'Basic', code: 'BSC', icon: 'B' },
+            { id: 'p_proj', name: 'Project', code: 'PRJ', icon: 'P' },
+            { id: 'p_ipd', name: 'IPD', code: 'IPD', icon: 'I' },
+            { id: 'p_ltc', name: 'LTC', code: 'LTC', icon: 'L' }
+        ],
+        features: [
+            { id: 'feat_list', name: 'List & Board Views', owner: 'Team Core' },
+            { id: 'feat_docs', name: 'Embedded Docs', owner: 'Team Core' },
+            { id: 'feat_gantt', name: 'Gantt & Timeline', owner: 'Team Plan' },
+            { id: 'feat_custom_fields', name: 'Custom Fields Engine', owner: 'Team Platform' },
+            { id: 'feat_automation', name: 'Workflow Automation', owner: 'Team Auto' },
+            { id: 'feat_sso', name: 'SAML/SSO', owner: 'Sec Team' },
+            { id: 'feat_audit', name: 'Audit Logs', owner: 'Sec Team' },
+            { id: 'feat_ip_restrict', name: 'IP Allowlisting', owner: 'Infra Team' },
+            { id: 'feat_ipd_req', name: 'Requirement Trace', owner: 'IPD Team' }
+        ],
+        capabilities: [
+            { id: 'c_prj_core', name: 'Unlimited Tasks & Projects', scope: 'WORKSPACE', fid: 'feat_list', prod: 'p_proj' },
+            { id: 'c_prj_docs', name: 'Project Docs', scope: 'WORKSPACE', fid: 'feat_docs', prod: 'p_proj' },
+            { id: 'c_prj_gantt', name: 'Gantt Chart & Timeline', scope: 'WORKSPACE', fid: 'feat_gantt', prod: 'p_proj' },
+            { id: 'c_prj_fields', name: 'Custom Fields', scope: 'WORKSPACE', fid: 'feat_custom_fields', prod: 'p_proj' },
+            { id: 'c_prj_auto', name: '250 Automations/mo', scope: 'WORKSPACE', fid: 'feat_automation', prod: 'p_proj' },
+            { id: 'c_prj_sso', name: 'SAML SSO (Tenant)', scope: 'TENANT', fid: 'feat_sso', prod: 'p_proj' },
+            { id: 'c_prj_audit', name: 'Audit Log (Tenant)', scope: 'TENANT', fid: 'feat_audit', prod: 'p_proj' },
+            { id: 'c_prj_ip', name: 'IP Restrictions (Global)', scope: 'GLOBAL', fid: 'feat_ip_restrict', prod: 'p_proj' },
+            { id: 'c_bsc_user', name: 'User Management', scope: 'TENANT', fid: null, prod: 'p_basic' },
+            { id: 'c_ipd_req', name: 'Requirement Mgmt', scope: 'WORKSPACE', fid: 'feat_ipd_req', prod: 'p_ipd' }
+        ],
+        rules: [
+            { id: 'r1', level: 'TECHNICAL', type: 'DEPEND', desc: 'Gantt依赖任务核心', src: 'feat_gantt', tgt: 'feat_list' },
+            { id: 'r2', level: 'COMMERCIAL', type: 'DEPEND', desc: 'IPD需基础平台', src: 'p_ipd', tgt: 'p_basic' }
+        ],
+        skus: [
+            { id: 'sku_prj_std', pid: 'p_proj', type: 'PLAN', name: 'Standard', ents: ['c_prj_core', 'c_prj_docs'] },
+            { id: 'sku_prj_prm', pid: 'p_proj', type: 'PLAN', name: 'Premium', ents: ['c_prj_core', 'c_prj_docs', 'c_prj_gantt', 'c_prj_fields', 'c_prj_auto'] },
+            { id: 'sku_prj_ent', pid: 'p_proj', type: 'PLAN', name: 'Enterprise', ents: ['c_prj_core', 'c_prj_docs', 'c_prj_gantt', 'c_prj_fields', 'c_prj_auto', 'c_prj_sso', 'c_prj_audit', 'c_prj_ip'] },
+            { id: 'sku_prj_add', pid: 'p_proj', type: 'ADDON', name: 'Extra Automations', ents: ['c_prj_auto'] },
+            { id: 'sku_bsc_ent', pid: 'p_basic', type: 'PLAN', name: 'Enterprise', ents: ['c_bsc_user'] },
+            { id: 'sku_ipd_pro', pid: 'p_ipd', type: 'PLAN', name: 'Professional', ents: ['c_ipd_req'] }
+        ],
+        tenants: [
+            { id: 't1', name: 'Tesla Inc', subs: [{ skuId: 'sku_prj_ent', seats: 5000, status: 'Active', end: '2026-01-01' }, { skuId: 'sku_bsc_ent', seats: 5000, status: 'Active', end: '2026-01-01' }] },
+            { id: 't2', name: 'SpaceX', subs: [{ skuId: 'sku_prj_prm', seats: 200, status: 'Active', end: '2025-06-30' }, { skuId: 'sku_ipd_pro', seats: 50, status: 'Active', end: '2025-06-30' }] }
+        ]
+    };
 
-    // 2. Features (Layer 1 - Technical) - Mapping to real functionality
-    let features = [
-        // Project Features
-        { id: 'feat_list', name: 'List & Board Views', owner: 'Team Core' },
-        { id: 'feat_docs', name: 'Embedded Docs', owner: 'Team Core' },
-        { id: 'feat_gantt', name: 'Gantt & Timeline', owner: 'Team Plan' },
-        { id: 'feat_custom_fields', name: 'Custom Fields Engine', owner: 'Team Platform' },
-        { id: 'feat_automation', name: 'Workflow Automation', owner: 'Team Auto' },
-        { id: 'feat_depend', name: 'Task Dependencies', owner: 'Team Plan' },
-        
-        // Enterprise/Global Features
-        { id: 'feat_sso', name: 'SAML/SSO', owner: 'Sec Team' },
-        { id: 'feat_audit', name: 'Audit Logs', owner: 'Sec Team' },
-        { id: 'feat_ip_restrict', name: 'IP Allowlisting', owner: 'Infra Team' },
-        { id: 'feat_ipd_req', name: 'Requirement Trace', owner: 'IPD Team' }
-    ];
+    // Global variables
+    let products, features, capabilities, rules, skus, tenants;
 
-    // 3. Capabilities (Layer 2 - Commercial) - Packaging Features
-    let capabilities = [
-        // Project - Standard Caps
-        { id: 'c_prj_core', name: 'Unlimited Tasks & Projects', scope: 'WORKSPACE', fid: 'feat_list', prod: 'p_proj' },
-        { id: 'c_prj_docs', name: 'Project Docs', scope: 'WORKSPACE', fid: 'feat_docs', prod: 'p_proj' },
-        
-        // Project - Premium Caps
-        { id: 'c_prj_gantt', name: 'Gantt Chart & Timeline', scope: 'WORKSPACE', fid: 'feat_gantt', prod: 'p_proj' },
-        { id: 'c_prj_fields', name: 'Custom Fields', scope: 'WORKSPACE', fid: 'feat_custom_fields', prod: 'p_proj' },
-        { id: 'c_prj_auto', name: '250 Automations/mo', scope: 'WORKSPACE', fid: 'feat_automation', prod: 'p_proj' },
-        
-        // Project - Enterprise Caps
-        { id: 'c_prj_sso', name: 'SAML SSO (Tenant)', scope: 'TENANT', fid: 'feat_sso', prod: 'p_proj' },
-        { id: 'c_prj_audit', name: 'Audit Log (Tenant)', scope: 'TENANT', fid: 'feat_audit', prod: 'p_proj' },
-        { id: 'c_prj_ip', name: 'IP Restrictions (Global)', scope: 'GLOBAL', fid: 'feat_ip_restrict', prod: 'p_proj' },
-
-        // Other Product Caps (Context)
-        { id: 'c_bsc_user', name: 'User Management', scope: 'TENANT', fid: null, prod: 'p_basic' },
-        { id: 'c_ipd_req', name: 'Requirement Mgmt', scope: 'WORKSPACE', fid: 'feat_ipd_req', prod: 'p_ipd' }
-    ];
-
-    // 4. Rules
-    let rules = [
-        { id: 'r1', level: 'TECHNICAL', type: 'DEPEND', desc: 'Gantt依赖任务核心', src: 'feat_gantt', tgt: 'feat_list' },
-        { id: 'r2', level: 'COMMERCIAL', type: 'DEPEND', desc: 'IPD需基础平台', src: 'p_ipd', tgt: 'p_basic' }
-    ];
-
-    // 5. SKUs (Layer 3 - Packaging)
-    let skus = [
-        // Project SKUs (Real-world tiers)
-        { id: 'sku_prj_std', pid: 'p_proj', type: 'PLAN', name: 'Standard', ents: ['c_prj_core', 'c_prj_docs'] },
-        { id: 'sku_prj_prm', pid: 'p_proj', type: 'PLAN', name: 'Premium', ents: ['c_prj_core', 'c_prj_docs', 'c_prj_gantt', 'c_prj_fields', 'c_prj_auto'] },
-        { id: 'sku_prj_ent', pid: 'p_proj', type: 'PLAN', name: 'Enterprise', ents: ['c_prj_core', 'c_prj_docs', 'c_prj_gantt', 'c_prj_fields', 'c_prj_auto', 'c_prj_sso', 'c_prj_audit', 'c_prj_ip'] },
-        { id: 'sku_prj_add', pid: 'p_proj', type: 'ADDON', name: 'Extra Automations', ents: ['c_prj_auto'] }, // Upsell addon
-
-        // Other SKUs
-        { id: 'sku_bsc_ent', pid: 'p_basic', type: 'PLAN', name: 'Enterprise', ents: ['c_bsc_user'] },
-        { id: 'sku_ipd_pro', pid: 'p_ipd', type: 'PLAN', name: 'Professional', ents: ['c_ipd_req'] }
-    ];
-
-    // 6. Tenants (Layer 4 - Runtime)
-    let tenants = [
-        { 
-            id: 't1', name: 'Tesla Inc', 
-            subs: [
-                { skuId: 'sku_prj_ent', seats: 5000, status: 'Active', end: '2026-01-01' },
-                { skuId: 'sku_bsc_ent', seats: 5000, status: 'Active', end: '2026-01-01' }
-            ]
-        },
-        {
-            id: 't2', name: 'SpaceX',
-            subs: [
-                { skuId: 'sku_prj_prm', seats: 200, status: 'Active', end: '2025-06-30' },
-                { skuId: 'sku_ipd_pro', seats: 50, status: 'Active', end: '2025-06-30' }
-            ]
+    // Initialize Data (Load from LS or Default)
+    function initData() {
+        if(localStorage.getItem('saas_demo_v19')) {
+            const saved = JSON.parse(localStorage.getItem('saas_demo_v19'));
+            products = saved.products;
+            features = saved.features;
+            capabilities = saved.capabilities;
+            rules = saved.rules;
+            skus = saved.skus;
+            tenants = saved.tenants;
+        } else {
+            resetData(false); // Load defaults without reload
         }
-    ];
+    }
+
+    function saveData() {
+        const data = { products, features, capabilities, rules, skus, tenants };
+        localStorage.setItem('saas_demo_v19', JSON.stringify(data));
+    }
+
+    function resetData(reload = true) {
+        products = JSON.parse(JSON.stringify(defaults.products));
+        features = JSON.parse(JSON.stringify(defaults.features));
+        capabilities = JSON.parse(JSON.stringify(defaults.capabilities));
+        rules = JSON.parse(JSON.stringify(defaults.rules));
+        skus = JSON.parse(JSON.stringify(defaults.skus));
+        tenants = JSON.parse(JSON.stringify(defaults.tenants));
+        saveData();
+        if(reload) location.reload();
+    }
+
+    initData(); // Run on startup
 
     // ================== 2. STATE & ROUTING ==================
     let currView = 'products';
@@ -438,7 +447,7 @@
         return id;
     }
 
-    // ================== 3. VIEWS (COMPLETE) ==================
+    // ================== 3. VIEWS ==================
 
     // 1. Features
     function renderFeatures(c, h, ha) {
@@ -663,7 +672,7 @@
         c.innerHTML = html;
     }
 
-    // ================== 4. LOGIC & ACTIONS ==================
+    // ================== 4. LOGIC & ACTIONS (Persistent) ==================
 
     function openModal(id) {
         document.querySelectorAll('.mask').forEach(e=>e.style.display='none');
@@ -701,19 +710,19 @@
         tgtSel.innerHTML = options;
     }
 
-    // CRUD Handlers
+    // CRUD Handlers with Save
     function saveFeature() {
         const id = document.getElementById('feat-id').value;
         const name = document.getElementById('feat-name').value;
         const owner = document.getElementById('feat-owner').value;
-        if(id && name) { features.push({id,name,owner}); closeModals(); render(); }
+        if(id && name) { features.push({id,name,owner}); saveData(); closeModals(); render(); }
     }
     function saveCap() {
         const name = document.getElementById('cap-name').value;
         const scope = document.getElementById('cap-scope').value;
         const fid = document.getElementById('cap-feat').value;
         const prod = document.getElementById('cap-prod').value;
-        if(name) { capabilities.push({id:'c'+Date.now(),name,scope,fid,prod}); closeModals(); render(); }
+        if(name) { capabilities.push({id:'c'+Date.now(),name,scope,fid,prod}); saveData(); closeModals(); render(); }
     }
     function saveRule() {
         const level = document.getElementById('rule-level').value;
@@ -722,6 +731,7 @@
         const src = document.getElementById('rule-src').value;
         const tgt = document.getElementById('rule-tgt').value;
         rules.push({id:'r'+Date.now(),level,type,desc,src,tgt}); 
+        saveData();
         closeModals(); 
         ruleTab = level;
         render();
@@ -730,7 +740,7 @@
         const name = document.getElementById('prod-name').value;
         const code = document.getElementById('prod-code').value;
         const icon = document.getElementById('prod-icon').value || 'P';
-        if(name) { products.push({id:'p'+Date.now(),name,code,icon}); closeModals(); render(); }
+        if(name) { products.push({id:'p'+Date.now(),name,code,icon}); saveData(); closeModals(); render(); }
     }
     function deleteItem(type, id) {
         if(!confirm('确定删除?')) return;
@@ -739,6 +749,7 @@
         if(type==='rule') rules=rules.filter(x=>x.id!==id);
         if(type==='prod') { products=products.filter(x=>x.id!==id); skus=skus.filter(x=>x.pid!==id); }
         if(type==='sku') skus=skus.filter(x=>x.id!==id);
+        saveData();
         render();
     }
 
@@ -747,6 +758,7 @@
         const type = document.getElementById('sku-type').value;
         if(name) {
             skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, ents:[]});
+            saveData();
             closeModals(); render();
         }
     }
@@ -754,6 +766,7 @@
         const s = skus.find(x=>x.id===sid);
         if(s.ents.includes(cid)) s.ents = s.ents.filter(x=>x!==cid);
         else s.ents.push(cid);
+        saveData();
         render();
     }
 
@@ -768,6 +781,7 @@
         const skuId = document.getElementById('new-t-sku').value;
         if(name && skuId) {
             tenants.push({id:'t'+Date.now(), name, subs:[{skuId, seats:100, status:'Active', end:'2025-12-31'}]});
+            saveData();
             closeModals(); render();
         }
     }
@@ -783,6 +797,7 @@
         if(editSubRef) {
             editSubRef.sub.seats = document.getElementById('sub-seats').value;
             editSubRef.sub.status = document.getElementById('sub-status').value;
+            saveData();
             closeModals(); render();
         }
     }
@@ -816,6 +831,7 @@
         const s = skus.find(x=>x.id===drawerAddonId);
         if(s.ents.includes(cid)) s.ents = s.ents.filter(x=>x!==cid);
         else s.ents.push(cid);
+        saveData();
         openDrawer(drawerAddonId);
     }
 
