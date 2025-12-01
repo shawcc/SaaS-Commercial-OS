@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V27 - Pricing & Levels</title>
+    <title>SaaS Commercial OS V29 - AI Ready</title>
     <style>
-        /* ================= V24 样式保持 ================= */
+        /* ================= 样式保持 V28 ================= */
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
@@ -19,6 +19,7 @@
             --danger: #ef4444;
             --warning: #f59e0b;
             --sidebar-w: 260px;
+            --ai-color: #8b5cf6;
         }
 
         * { box-sizing: border-box; }
@@ -65,6 +66,9 @@
 
         .btn-reset { background: #1e293b; color: #fca5a5; border-color: #f87171; }
         .btn-reset:hover { background: #450a0a; }
+        
+        .btn-settings { background: #1e293b; color: #ddd6fe; border-color: #8b5cf6; }
+        .btn-settings:hover { background: #4c1d95; }
 
         /* --- Main Content --- */
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -84,6 +88,11 @@
         .btn-icon { padding: 4px 8px; background: transparent; color: var(--text-sub); font-size: 14px; border:none; cursor: pointer; border-radius: 4px; }
         .btn-icon:hover { color: var(--text-main); background: #e2e8f0; }
         .btn-icon.danger:hover { color: #dc2626; background: #fee2e2; }
+        
+        /* AI Button */
+        .btn-ai { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; }
+        .btn-ai:hover { opacity: 0.9; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+        .btn-ai:disabled { opacity: 0.6; cursor: wait; }
 
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px 24px; font-size: 12px; color: var(--text-sub); border-bottom: 1px solid var(--border); background: #f8fafc; font-weight: 600; position: sticky; top: 0; z-index: 10; }
@@ -203,17 +212,22 @@
             </div>
         </div>
 
-        <!-- NEW: Import/Export/Reset -->
+        <!-- Import/Export/Reset/Settings -->
         <div class="sidebar-footer">
             <div class="sidebar-btn btn-export" onclick="exportData()">
-                📤 导出配置 (Download JSON)
+                📤 导出配置
             </div>
             <div class="sidebar-btn btn-import" onclick="document.getElementById('file-input').click()">
-                📥 导入配置 (Restore)
+                📥 导入配置
             </div>
             <input type="file" id="file-input" style="display:none" accept=".json" onchange="importData(this)">
+            
+            <div class="sidebar-btn btn-settings" onclick="openModal('settings')">
+                ⚙️ 设置 API Key
+            </div>
+            
             <div class="sidebar-btn btn-reset" onclick="resetData()">
-                🗑️ 重置演示数据 (Reset)
+                🗑️ 重置演示数据
             </div>
         </div>
     </div>
@@ -232,6 +246,24 @@
 
 <!-- ================= MODALS ================= -->
 
+<!-- Settings Modal (NEW) -->
+<div class="mask" id="modal-settings">
+    <div class="modal">
+        <div class="modal-head"><span>系统设置</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Gemini API Key</label>
+                <input type="password" class="form-input" id="settings-api-key" placeholder="AIzaSy...">
+                <div style="font-size:12px; color:#94a3b8; margin-top:4px;">
+                    您的 Key 仅存储在本地浏览器中，不会上传到服务器。
+                    <br>如果不填，AI 功能将使用模拟数据（Mock Mode）。
+                </div>
+            </div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveSettings()">保存配置</button></div>
+    </div>
+</div>
+
 <!-- 1. Feature Modal -->
 <div class="mask" id="modal-feature">
     <div class="modal">
@@ -245,7 +277,24 @@
     </div>
 </div>
 
-<!-- 2. Capability Modal (V22 Update: Multi-Product) -->
+<!-- AI Feature Gen Modal -->
+<div class="mask" id="modal-ai-feature">
+    <div class="modal">
+        <div class="modal-head"><span>✨ AI 智能生成资产</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">输入业务领域 (例如: "WMS 仓储管理", "CRM 销售")</label>
+                <input class="form-input" id="ai-feat-topic" placeholder="请输入业务主题...">
+            </div>
+            <div class="form-group" id="ai-feat-loading" style="display:none; color:var(--primary);">
+                🤖 AI 正在分析并生成技术特性，请稍候...
+            </div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-ai" id="btn-ai-gen" onclick="generateAiFeatures()">开始生成</button></div>
+    </div>
+</div>
+
+<!-- 2. Capability Modal -->
 <div class="mask" id="modal-cap">
     <div class="modal">
         <div class="modal-head"><span id="cap-modal-title">定义 Capability</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -308,13 +357,20 @@
     </div>
 </div>
 
-<!-- 5. SKU Modal (Updated V27) -->
+<!-- 5. SKU Modal -->
 <div class="mask" id="modal-sku">
     <div class="modal">
         <div class="modal-head"><span id="sku-modal-title">新建 SKU</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
             <div class="form-group"><label class="form-label">SKU 名称</label><input class="form-input" id="sku-name"></div>
-            <div class="form-group"><label class="form-label">营销描述 (Description)</label><input class="form-input" id="sku-desc" placeholder="一句话卖点..."></div>
+            
+            <div class="form-group">
+                <label class="form-label">营销描述 (Description)</label>
+                <div style="display:flex; gap:8px;">
+                    <input class="form-input" id="sku-desc" placeholder="一句话卖点...">
+                    <button class="btn btn-ai" onclick="generateSkuDesc()" title="AI 智能润色">✨</button>
+                </div>
+            </div>
             
             <div style="display:flex; gap:10px;">
                 <div class="form-group" style="flex:1">
@@ -390,9 +446,118 @@
 <div class="mask" id="drawer-overlay" onclick="closeDrawer()" style="z-index:150;"></div>
 
 <script>
+    // ================== 0. API CONFIG (BYOK) ==================
+    
+    function getApiKey() {
+        return localStorage.getItem('saas_gemini_key') || "";
+    }
+
+    function saveSettings() {
+        const key = document.getElementById('settings-api-key').value;
+        localStorage.setItem('saas_gemini_key', key);
+        closeModals();
+        alert("API Key 已保存！");
+    }
+
+    async function callGemini(prompt) {
+        const apiKey = getApiKey();
+        
+        if (!apiKey) {
+            console.log("Using Mock AI because no API Key provided.");
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    if (prompt.includes("Generate JSON features")) {
+                        resolve(`[
+                            {"name": "AI 智能排程", "owner": "Algo Team"},
+                            {"name": "多语言支持", "owner": "I18n Team"},
+                            {"name": "移动端适配", "owner": "Mobile Team"},
+                            {"name": "实时协作同步", "owner": "RTS Team"},
+                            {"name": "三方应用集成", "owner": "Open Platform"}
+                        ]`);
+                    } else if (prompt.includes("marketing description")) {
+                        resolve("赋能企业数字化转型，解锁无限增长潜能。");
+                    } else {
+                        resolve("AI Response Simulated (No Key Configured)");
+                    }
+                }, 1000);
+            });
+        }
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+            const data = await response.json();
+            if(data.error) throw new Error(data.error.message);
+            return data.candidates[0].content.parts[0].text;
+        } catch (error) {
+            console.error("AI Error:", error);
+            alert("AI 调用失败: " + error.message);
+            return null;
+        }
+    }
+
+    async function generateAiFeatures() {
+        const topic = document.getElementById('ai-feat-topic').value;
+        if (!topic) return alert("请输入主题");
+        
+        const btn = document.getElementById('btn-ai-gen');
+        const loader = document.getElementById('ai-feat-loading');
+        
+        btn.disabled = true; btn.innerText = "生成中...";
+        loader.style.display = 'block';
+
+        const prompt = `Generate JSON features for SaaS topic "${topic}". Return ONLY a JSON array with objects having "name" (technical feature name) and "owner" (team name). Generate 5 items. Respond in Chinese where appropriate.`;
+        
+        const result = await callGemini(prompt);
+        
+        if(result) {
+            try {
+                const cleanJson = result.replace(/```json|```/g, '').trim();
+                const newFeats = JSON.parse(cleanJson);
+                newFeats.forEach(f => {
+                    features.push({ id: 'feat_ai_' + Math.floor(Math.random()*10000), name: f.name, owner: f.owner });
+                });
+                saveData();
+                closeModals();
+                render();
+                alert(`成功生成 ${newFeats.length} 个新特性！`);
+            } catch (e) {
+                alert("生成结果解析失败");
+            }
+        }
+        
+        btn.disabled = false; btn.innerText = "开始生成";
+        loader.style.display = 'none';
+    }
+
+    async function generateSkuDesc() {
+        const name = document.getElementById('sku-name').value;
+        const prodId = activeProdId; 
+        const prod = products.find(p => p.id === prodId);
+        
+        if (!name || !prod) return alert("请先填写 SKU 名称");
+        
+        const btn = document.querySelector('.btn-ai');
+        const originalText = btn.innerText;
+        btn.innerText = "⏳";
+        
+        const prompt = `Write a short, attractive Chinese marketing description (max 25 chars) for a SaaS plan named '${name}' for product '${prod.name}'.`;
+        const desc = await callGemini(prompt);
+        
+        if (desc) {
+            document.getElementById('sku-desc').value = desc.trim();
+        }
+        btn.innerText = originalText;
+    }
+
+
     // ================== 1. DATA STORE (MEEGO EDITION V27) ==================
     
-    // Meego Product Line
     const defaults = {
         products: [
             { id: 'p_meego_prj', name: 'Meego Project', code: 'PRJ', icon: 'P' },
@@ -401,38 +566,28 @@
             { id: 'p_basic', name: 'Basic Platform', code: 'BSC', icon: 'B' }
         ],
         features: [
-            // Core
             { id: 'feat_list', name: 'List/Board Views', owner: 'Core Team' },
             { id: 'feat_gantt', name: 'Gantt Chart', owner: 'Core Team' },
             { id: 'feat_calc', name: 'Calculated Fields', owner: 'Platform' },
             { id: 'feat_global_view', name: 'Global View', owner: 'Platform' },
-            
-            // Collab & Sec
             { id: 'feat_cross_org', name: 'Enterprise Interconnect', owner: 'Collaboration' },
             { id: 'feat_adv_perm', name: 'Advanced Permissions', owner: 'Identity' },
             { id: 'feat_security', name: 'Security Mgmt', owner: 'Sec Team' },
             { id: 'feat_automation', name: 'Automation Rules', owner: 'Automation' },
-            
-            // Enterprise
             { id: 'feat_branding', name: 'Brand Customization', owner: 'Frontend' },
             { id: 'feat_data_mig', name: 'Data Migration Service', owner: 'Ops' },
             { id: 'feat_custom_plugin', name: 'Custom Plugins', owner: 'Open API' }
         ],
         capabilities: [
-            // Standard Caps
             { id: 'c_base_work', name: '基础工作台 (看板/列表)', scope: 'WORKSPACE', fid: 'feat_list', prods: ['p_meego_prj'] },
             { id: 'c_gantt', name: '甘特图', scope: 'WORKSPACE', fid: 'feat_gantt', prods: ['p_meego_prj'] },
             { id: 'c_sec_basic', name: '安全管理 (基础)', scope: 'TENANT', fid: 'feat_security', prods: ['p_meego_prj'] },
             { id: 'c_api', name: 'API Access', scope: 'WORKSPACE', fid: null, prods: ['p_meego_prj'] },
-
-            // Premium Caps
             { id: 'c_calc_field', name: '计算字段', scope: 'WORKSPACE', fid: 'feat_calc', prods: ['p_meego_prj'] },
             { id: 'c_global_v', name: '全景视图', scope: 'TENANT', fid: 'feat_global_view', prods: ['p_meego_prj'] },
             { id: 'c_cross_org', name: '企业互联', scope: 'TENANT', fid: 'feat_cross_org', prods: ['p_meego_prj'] },
             { id: 'c_adv_perm', name: '高级权限', scope: 'WORKSPACE', fid: 'feat_adv_perm', prods: ['p_meego_prj'] },
             { id: 'c_auto_500', name: '自动化规则 (500次)', scope: 'WORKSPACE', fid: 'feat_automation', prods: ['p_meego_prj'] },
-
-            // Enterprise Caps
             { id: 'c_branding', name: '品牌定制', scope: 'TENANT', fid: 'feat_branding', prods: ['p_meego_prj'] },
             { id: 'c_migrate', name: '数据迁移服务', scope: 'GLOBAL', fid: 'feat_data_mig', prods: ['p_meego_prj'] },
             { id: 'c_plugins', name: '自定义插件', scope: 'WORKSPACE', fid: 'feat_custom_plugin', prods: ['p_meego_prj'] }
@@ -441,12 +596,9 @@
             { id: 'r1', level: 'COMMERCIAL', type: 'DEPEND', desc: '企业互联需基础安全', src: 'c_cross_org', tgt: 'c_sec_basic' }
         ],
         skus: [
-            // Meego Project SKUs with Level and Pricing
-            { id: 'sku_mp_std', pid: 'p_meego_prj', type: 'PLAN', name: 'Standard', desc: '适合小型团队', price: 29, billing: 'PER_USER_MO', level: 1, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api'] },
-            { id: 'sku_mp_prm', pid: 'p_meego_prj', type: 'PLAN', name: 'Premium', desc: '适合中型企业', price: 59, billing: 'PER_USER_MO', level: 2, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api', 'c_calc_field', 'c_global_v', 'c_cross_org', 'c_adv_perm', 'c_auto_500'] },
-            { id: 'sku_mp_ent', pid: 'p_meego_prj', type: 'PLAN', name: 'Enterprise', desc: '适合大型组织', price: 0, billing: 'CUSTOM', level: 3, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api', 'c_calc_field', 'c_global_v', 'c_cross_org', 'c_adv_perm', 'c_auto_500', 'c_branding', 'c_migrate', 'c_plugins'] },
-            
-            // Example Addon
+            { id: 'sku_mp_std', pid: 'p_meego_prj', type: 'PLAN', name: 'Standard', desc: '适合小型团队快速上手', price: 29, billing: 'PER_USER_MO', level: 1, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api'] },
+            { id: 'sku_mp_prm', pid: 'p_meego_prj', type: 'PLAN', name: 'Premium', desc: '助力中型企业高效协作', price: 59, billing: 'PER_USER_MO', level: 2, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api', 'c_calc_field', 'c_global_v', 'c_cross_org', 'c_adv_perm', 'c_auto_500'] },
+            { id: 'sku_mp_ent', pid: 'p_meego_prj', type: 'PLAN', name: 'Enterprise', desc: '大型组织的旗舰之选', price: 0, billing: 'CUSTOM', level: 3, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api', 'c_calc_field', 'c_global_v', 'c_cross_org', 'c_adv_perm', 'c_auto_500', 'c_branding', 'c_migrate', 'c_plugins'] },
             { id: 'sku_mp_auto_plus', pid: 'p_meego_prj', type: 'ADDON', name: 'Auto+ Pack', desc: '增加 5000 次自动化执行', price: 100, billing: 'FLAT_MO', ents: ['c_auto_500'] }
         ],
         tenants: [
@@ -458,8 +610,8 @@
     let products, features, capabilities, rules, skus, tenants;
 
     function initData() {
-        if(localStorage.getItem('saas_demo_v27')) {
-            const saved = JSON.parse(localStorage.getItem('saas_demo_v27'));
+        if(localStorage.getItem('saas_demo_v29')) {
+            const saved = JSON.parse(localStorage.getItem('saas_demo_v29'));
             saved.capabilities.forEach(c => { if(!c.prods && c.prod) c.prods = [c.prod]; });
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
@@ -470,7 +622,7 @@
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v27', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v29', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -503,9 +655,8 @@
         reader.onload = function(e) {
             try {
                 const imported = JSON.parse(e.target.result);
-                // Simple validation
                 if(imported.products && imported.skus) {
-                    localStorage.setItem('saas_demo_v27', JSON.stringify(imported));
+                    localStorage.setItem('saas_demo_v29', JSON.stringify(imported));
                     location.reload();
                 } else {
                     alert('Invalid configuration file format');
@@ -585,7 +736,7 @@
 
     function renderFeatures(c, h, ha) {
         h.innerText = '产品功能 (Features)';
-        ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('feature')">+ 注册 Feature</button>`;
+        ha.innerHTML = `<button class="btn btn-ai" onclick="openModal('ai-feature')" style="margin-right:10px;">✨ AI 批量生成</button><button class="btn btn-primary" onclick="openModal('feature')">+ 注册 Feature</button>`;
         c.innerHTML = `<div class="card"><table><thead><tr><th>ID</th><th>名称</th><th>Owner</th><th>操作</th></tr></thead><tbody>
             ${features.map(f => `<tr><td><code class="code-pill">${f.id}</code></td><td>${f.name}</td><td>${f.owner}</td><td><button class="btn btn-icon" onclick="openModal('feature','${f.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('feature','${f.id}')">🗑️</button></td></tr>`).join('')}
         </tbody></table></div>`;
@@ -663,7 +814,6 @@
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('sku')">+ SKU</button>`;
 
         let plans = skus.filter(s => s.pid === activeProdId && s.type === 'PLAN');
-        // V27: Sort plans by level
         plans.sort((a,b) => (a.level || 0) - (b.level || 0));
 
         const addons = skus.filter(s => s.pid === activeProdId && s.type === 'ADDON');
@@ -784,11 +934,9 @@
     function checkMutex(sku, capId) {
         const capToAdd = capabilities.find(c=>c.id===capId);
         for(const exist of sku.ents) {
-            // Direct capability conflict
             const conflict = rules.find(r => r.type==='MUTEX' && r.level==='TECHNICAL' && 
                 ((r.src===capId && r.tgt===exist) || (r.src===exist && r.tgt===capId))
             );
-            // Feature level conflict
             if (!conflict && capToAdd.fid) {
                 const existCap = capabilities.find(c=>c.id===exist);
                 if (existCap.fid) {
@@ -815,7 +963,7 @@
         saveData(); render();
     }
 
-    // ================== 5. MODAL LOGIC (FULL EDIT SUPPORT) ==================
+    // ================== 5. MODAL LOGIC ==================
 
     function openModal(type, id = null) {
         document.querySelectorAll('.mask').forEach(e=>e.style.display='none');
@@ -830,7 +978,6 @@
             document.getElementById('cap-scope').value = item.scope;
             document.getElementById('cap-feat').innerHTML = '<option value="">(None)</option>' + features.map(f=>`<option value="${f.id}" ${f.id===item.fid?'selected':''}>${f.name}</option>`).join('');
             
-            // Generate checkboxes for products
             const prodContainer = document.getElementById('cap-prods-container');
             prodContainer.innerHTML = products.map(p => {
                 const checked = (item.prods || []).includes(p.id) ? 'checked' : '';
@@ -884,6 +1031,9 @@
                 updateSkuOptions();
             }
         }
+        if(type === 'settings') {
+            document.getElementById('settings-api-key').value = getApiKey();
+        }
     }
     
     function toggleSkuLevel() {
@@ -929,7 +1079,6 @@
         const name = document.getElementById('cap-name').value;
         const scope = document.getElementById('cap-scope').value;
         const fid = document.getElementById('cap-feat').value;
-        // V24: Collect checkboxes
         const checkboxes = document.querySelectorAll('#cap-prods-container input[type="checkbox"]:checked');
         const prods = Array.from(checkboxes).map(cb => cb.value);
         
@@ -1036,7 +1185,6 @@
     function openDrawer(sid) {
         drawerAddonId = sid;
         const addon = skus.find(s=>s.id===sid);
-        // V24 Logic: Filter caps where prods array includes this product ID
         const prodCaps = capabilities.filter(c => (c.prods||[]).includes(addon.pid));
         const list = document.getElementById('drawer-list');
         document.getElementById('drawer-title').innerText = `配置 ${addon.name}`;
