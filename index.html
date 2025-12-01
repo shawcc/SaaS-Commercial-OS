@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V24 - The Uncut Collection</title>
+    <title>SaaS Commercial OS V26 - Meego Edition</title>
     <style>
-        /* ================= V24 完整样式表 ================= */
+        /* ================= V24 样式保持 ================= */
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
@@ -30,8 +30,15 @@
         }
 
         .app-window {
-            width: 1600px; height: 950px; background: var(--bg-app); border-radius: 12px;
-            display: flex; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            width: 100%; height: 100%; background: var(--bg-app); 
+            display: flex; overflow: hidden; 
+        }
+        
+        @media (min-width: 1200px) {
+            .app-window {
+                width: 1600px; height: 950px; border-radius: 12px;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            }
         }
 
         /* --- Sidebar --- */
@@ -47,8 +54,17 @@
         .nav-item.active { background: var(--primary); color: white; }
         .nav-icon { margin-right: 10px; width: 20px; text-align: center; }
 
-        .reset-btn { margin: auto 16px 16px; padding: 10px; background: #334155; color: #f87171; border: 1px solid #475569; border-radius: 6px; cursor: pointer; font-size: 12px; text-align: center; transition: 0.2s; }
-        .reset-btn:hover { background: #1e293b; border-color: #f87171; }
+        .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid #1e293b; display: flex; flex-direction: column; gap: 8px; }
+        .sidebar-btn { padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; text-align: center; transition: 0.2s; border: 1px solid; display: flex; align-items: center; justify-content: center; gap: 6px;}
+        
+        .btn-export { background: #1e293b; color: #bae6fd; border-color: #38bdf8; }
+        .btn-export:hover { background: #0c4a6e; }
+        
+        .btn-import { background: #1e293b; color: #bbf7d0; border-color: #4ade80; }
+        .btn-import:hover { background: #064e3b; }
+
+        .btn-reset { background: #1e293b; color: #fca5a5; border-color: #f87171; }
+        .btn-reset:hover { background: #450a0a; }
 
         /* --- Main Content --- */
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -143,7 +159,7 @@
         .form-input, .form-select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
         .form-input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
 
-        /* Multi-select box */
+        /* Multi-select check list */
         .multi-check-container { max-height: 150px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; }
         .multi-check-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 14px; }
         .multi-check-item:hover { background: #f8fafc; }
@@ -154,51 +170,67 @@
 
 <div class="app-window">
     
+    <!-- Sidebar -->
     <div class="sidebar">
-        <div class="logo-box">💠 SaaS OS V24</div>
+        <div class="logo-box">💠 Meego Commercial</div>
 
         <div class="nav-group">
-            <div class="nav-label">Layer 1 & 2: 资产定义</div>
+            <div class="nav-label">核心资产</div>
             <div class="nav-item active" id="nav-features" onclick="route('features')">
-                <span class="nav-icon">🔧</span> 技术特性 (Features)
+                <span class="nav-icon">🔧</span> 产品功能 (Features)
             </div>
             <div class="nav-item" id="nav-caps" onclick="route('caps')">
                 <span class="nav-icon">📦</span> 商业能力 (Capabilities)
+            </div>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">商业配置</div>
+            <div class="nav-item" id="nav-products" onclick="route('products')">
+                <span class="nav-icon">🏷️</span> 产品管理 (Products)
             </div>
             <div class="nav-item" id="nav-rules" onclick="route('rules')">
                 <span class="nav-icon">🛡️</span> 规则引擎 (Rules)
             </div>
         </div>
-
-        <div class="nav-group">
-            <div class="nav-label">Layer 3: 商品包装</div>
-            <div class="nav-item" id="nav-products" onclick="route('products')">
-                <span class="nav-icon">🏷️</span> 产品线管理
-            </div>
-        </div>
         
         <div class="nav-group">
-            <div class="nav-label">Layer 4: 履约运营</div>
+            <div class="nav-label">运营履约</div>
             <div class="nav-item" id="nav-ents" onclick="route('ents')">
-                <span class="nav-icon">👥</span> 客户权益管理
+                <span class="nav-icon">👥</span> 客户权益 (Entitlements)
             </div>
         </div>
 
-        <div class="reset-btn" onclick="resetData()">
-            🗑️ 重置演示数据 (Reset Demo)
+        <!-- NEW: Import/Export/Reset -->
+        <div class="sidebar-footer">
+            <div class="sidebar-btn btn-export" onclick="exportData()">
+                📤 导出配置 (Download JSON)
+            </div>
+            <div class="sidebar-btn btn-import" onclick="document.getElementById('file-input').click()">
+                📥 导入配置 (Restore)
+            </div>
+            <input type="file" id="file-input" style="display:none" accept=".json" onchange="importData(this)">
+            <div class="sidebar-btn btn-reset" onclick="resetData()">
+                🗑️ 重置演示数据 (Reset)
+            </div>
         </div>
     </div>
 
+    <!-- Main -->
     <div class="main">
         <div class="header">
             <div class="page-title" id="page-title">Feature Registry</div>
             <div id="page-actions"></div>
         </div>
         <div class="content" id="main-content">
-            </div>
+            <!-- Dynamic Content -->
+        </div>
     </div>
 </div>
 
+<!-- ================= MODALS ================= -->
+
+<!-- 1. Feature Modal -->
 <div class="mask" id="modal-feature">
     <div class="modal">
         <div class="modal-head"><span id="feat-modal-title">注册 Feature</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -211,6 +243,7 @@
     </div>
 </div>
 
+<!-- 2. Capability Modal (V22 Update: Multi-Product) -->
 <div class="mask" id="modal-cap">
     <div class="modal">
         <div class="modal-head"><span id="cap-modal-title">定义 Capability</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -233,6 +266,7 @@
     </div>
 </div>
 
+<!-- 3. Rule Modal -->
 <div class="mask" id="modal-rule">
     <div class="modal">
         <div class="modal-head"><span id="rule-modal-title">新建规则</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -259,6 +293,7 @@
     </div>
 </div>
 
+<!-- 4. Product Modal -->
 <div class="mask" id="modal-prod">
     <div class="modal">
         <div class="modal-head"><span id="prod-modal-title">新建产品线</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -271,6 +306,7 @@
     </div>
 </div>
 
+<!-- 5. SKU Modal -->
 <div class="mask" id="modal-sku">
     <div class="modal">
         <div class="modal-head"><span id="sku-modal-title">新建 SKU</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -284,6 +320,7 @@
     </div>
 </div>
 
+<!-- 6. Tenant Modal -->
 <div class="mask" id="modal-new-t">
     <div class="modal">
         <div class="modal-head"><span id="tenant-modal-title">签约新客户</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -298,6 +335,7 @@
     </div>
 </div>
 
+<!-- 7. Sub Modal -->
 <div class="mask" id="modal-sub">
     <div class="modal">
         <div class="modal-head"><span>权益变更</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -309,6 +347,7 @@
     </div>
 </div>
 
+<!-- Add-on Drawer -->
 <div class="drawer" id="drawer">
     <div style="padding:20px; border-bottom:1px solid #e2e8f0; font-weight:600; display:flex; justify-content:space-between;">
         <span id="drawer-title">配置 Add-on</span><span style="cursor:pointer" onclick="closeDrawer()">✕</span>
@@ -321,58 +360,75 @@
 <div class="mask" id="drawer-overlay" onclick="closeDrawer()" style="z-index:150;"></div>
 
 <script>
-    // ================== 1. DATA STORE (With LocalStorage) ==================
-    // V22/V24 Data Structure: Capabilities use 'prods' array
+    // ================== 1. DATA STORE (MEEGO EDITION) ==================
     
+    // Meego Product Line
     const defaults = {
         products: [
-            { id: 'p_basic', name: 'Basic', code: 'BSC', icon: 'B' },
-            { id: 'p_proj', name: 'Project', code: 'PRJ', icon: 'P' },
-            { id: 'p_ipd', name: 'IPD', code: 'IPD', icon: 'I' },
-            { id: 'p_ltc', name: 'LTC', code: 'LTC', icon: 'L' }
+            { id: 'p_meego_prj', name: 'Meego Project', code: 'PRJ', icon: 'P' },
+            { id: 'p_meego_ipd', name: 'Meego IPD', code: 'IPD', icon: 'I' },
+            { id: 'p_meego_ltc', name: 'Meego LTC', code: 'LTC', icon: 'L' },
+            { id: 'p_basic', name: 'Basic Platform', code: 'BSC', icon: 'B' }
         ],
         features: [
-            { id: 'feat_list', name: 'List & Board Views', owner: 'Team Core' },
-            { id: 'feat_gantt', name: 'Gantt & Timeline', owner: 'Team Plan' },
-            { id: 'feat_custom_fields', name: 'Custom Fields', owner: 'Team Platform' },
-            { id: 'feat_automation', name: 'Workflow Automation', owner: 'Team Auto' },
-            { id: 'feat_sso', name: 'SAML/SSO', owner: 'Sec Team' },
-            { id: 'feat_audit', name: 'Audit Logs', owner: 'Sec Team' },
-            { id: 'feat_ip_restrict', name: 'IP Allowlisting', owner: 'Infra Team' },
-            { id: 'feat_ipd_req', name: 'Requirement Trace', owner: 'IPD Team' }
+            // Core
+            { id: 'feat_list', name: 'List/Board Views', owner: 'Core Team' },
+            { id: 'feat_gantt', name: 'Gantt Chart', owner: 'Core Team' },
+            { id: 'feat_calc', name: 'Calculated Fields', owner: 'Platform' },
+            { id: 'feat_global_view', name: 'Global View', owner: 'Platform' },
+            
+            // Collab & Sec
+            { id: 'feat_cross_org', name: 'Enterprise Interconnect', owner: 'Collaboration' },
+            { id: 'feat_adv_perm', name: 'Advanced Permissions', owner: 'Identity' },
+            { id: 'feat_security', name: 'Security Mgmt', owner: 'Sec Team' },
+            { id: 'feat_automation', name: 'Automation Rules', owner: 'Automation' },
+            
+            // Enterprise
+            { id: 'feat_branding', name: 'Brand Customization', owner: 'Frontend' },
+            { id: 'feat_data_mig', name: 'Data Migration Service', owner: 'Ops' },
+            { id: 'feat_custom_plugin', name: 'Custom Plugins', owner: 'Open API' }
         ],
         capabilities: [
-            { id: 'c_core', name: 'Core Task Mgmt', scope: 'WORKSPACE', fid: 'feat_list', prods: ['p_proj', 'p_ipd'] },
-            { id: 'c_gantt', name: 'Gantt Chart', scope: 'WORKSPACE', fid: 'feat_gantt', prods: ['p_proj'] },
-            { id: 'c_auto', name: 'Automations', scope: 'WORKSPACE', fid: 'feat_automation', prods: ['p_proj', 'p_ltc'] },
-            { id: 'c_sso', name: 'SAML SSO', scope: 'TENANT', fid: 'feat_sso', prods: ['p_basic', 'p_proj', 'p_ipd', 'p_ltc'] },
-            { id: 'c_audit', name: 'Audit Log', scope: 'TENANT', fid: 'feat_audit', prods: ['p_proj', 'p_ipd'] },
-            { id: 'c_ipd_req', name: 'Requirement Mgmt', scope: 'WORKSPACE', fid: 'feat_ipd_req', prods: ['p_ipd'] }
+            // Standard Caps
+            { id: 'c_base_work', name: '基础工作台 (看板/列表)', scope: 'WORKSPACE', fid: 'feat_list', prods: ['p_meego_prj'] },
+            { id: 'c_gantt', name: '甘特图', scope: 'WORKSPACE', fid: 'feat_gantt', prods: ['p_meego_prj'] },
+            { id: 'c_sec_basic', name: '安全管理 (基础)', scope: 'TENANT', fid: 'feat_security', prods: ['p_meego_prj'] },
+            { id: 'c_api', name: 'API Access', scope: 'WORKSPACE', fid: null, prods: ['p_meego_prj'] },
+
+            // Premium Caps
+            { id: 'c_calc_field', name: '计算字段', scope: 'WORKSPACE', fid: 'feat_calc', prods: ['p_meego_prj'] },
+            { id: 'c_global_v', name: '全景视图', scope: 'TENANT', fid: 'feat_global_view', prods: ['p_meego_prj'] },
+            { id: 'c_cross_org', name: '企业互联', scope: 'TENANT', fid: 'feat_cross_org', prods: ['p_meego_prj'] },
+            { id: 'c_adv_perm', name: '高级权限', scope: 'WORKSPACE', fid: 'feat_adv_perm', prods: ['p_meego_prj'] },
+            { id: 'c_auto_500', name: '自动化规则 (500次)', scope: 'WORKSPACE', fid: 'feat_automation', prods: ['p_meego_prj'] },
+
+            // Enterprise Caps
+            { id: 'c_branding', name: '品牌定制', scope: 'TENANT', fid: 'feat_branding', prods: ['p_meego_prj'] },
+            { id: 'c_migrate', name: '数据迁移服务', scope: 'GLOBAL', fid: 'feat_data_mig', prods: ['p_meego_prj'] },
+            { id: 'c_plugins', name: '自定义插件', scope: 'WORKSPACE', fid: 'feat_custom_plugin', prods: ['p_meego_prj'] }
         ],
         rules: [
-            { id: 'r1', level: 'TECHNICAL', type: 'DEPEND', desc: 'Gantt依赖列表视图', src: 'feat_gantt', tgt: 'feat_list' },
-            { id: 'r2', level: 'COMMERCIAL', type: 'DEPEND', desc: 'IPD需基础平台', src: 'p_ipd', tgt: 'p_basic' }
+            { id: 'r1', level: 'COMMERCIAL', type: 'DEPEND', desc: '企业互联需基础安全', src: 'c_cross_org', tgt: 'c_sec_basic' }
         ],
         skus: [
-            { id: 'sku_prj_std', pid: 'p_proj', type: 'PLAN', name: 'Standard', ents: ['c_core'] },
-            { id: 'sku_prj_pro', pid: 'p_proj', type: 'PLAN', name: 'Professional', ents: ['c_core', 'c_gantt', 'c_auto'] },
-            { id: 'sku_prj_ent', pid: 'p_proj', type: 'PLAN', name: 'Enterprise', ents: ['c_core', 'c_gantt', 'c_auto', 'c_sso', 'c_audit'] },
-            { id: 'sku_prj_add', pid: 'p_proj', type: 'ADDON', name: 'Extra Automations', ents: ['c_auto'] },
-            { id: 'sku_bsc_ent', pid: 'p_basic', type: 'PLAN', name: 'Enterprise', ents: ['c_sso'] },
-            { id: 'sku_ipd_pro', pid: 'p_ipd', type: 'PLAN', name: 'Professional', ents: ['c_core', 'c_ipd_req'] }
+            // Meego Project SKUs
+            { id: 'sku_mp_std', pid: 'p_meego_prj', type: 'PLAN', name: 'Standard', ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api'] },
+            { id: 'sku_mp_prm', pid: 'p_meego_prj', type: 'PLAN', name: 'Premium', ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api', 'c_calc_field', 'c_global_v', 'c_cross_org', 'c_adv_perm', 'c_auto_500'] },
+            { id: 'sku_mp_ent', pid: 'p_meego_prj', type: 'PLAN', name: 'Enterprise', ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api', 'c_calc_field', 'c_global_v', 'c_cross_org', 'c_adv_perm', 'c_auto_500', 'c_branding', 'c_migrate', 'c_plugins'] },
+            // Example Addon
+            { id: 'sku_mp_auto_plus', pid: 'p_meego_prj', type: 'ADDON', name: 'Auto+ Pack', ents: ['c_auto_500'] }
         ],
         tenants: [
-            { id: 't1', name: 'Tesla Inc', subs: [{ skuId: 'sku_prj_ent', seats: 5000, status: 'Active', end: '2026-01-01' }, { skuId: 'sku_bsc_ent', seats: 5000, status: 'Active', end: '2026-01-01' }] },
-            { id: 't2', name: 'SpaceX', subs: [{ skuId: 'sku_prj_pro', seats: 200, status: 'Active', end: '2025-06-30' }] }
+            { id: 't1', name: 'Li Auto', subs: [{ skuId: 'sku_mp_ent', seats: 2000, status: 'Active', end: '2026-01-01' }] },
+            { id: 't2', name: 'NIO', subs: [{ skuId: 'sku_mp_prm', seats: 500, status: 'Active', end: '2025-06-30' }] }
         ]
     };
 
     let products, features, capabilities, rules, skus, tenants;
 
     function initData() {
-        if(localStorage.getItem('saas_demo_v24')) {
-            const saved = JSON.parse(localStorage.getItem('saas_demo_v24'));
-            // V22+ Migration check: ensure capabilities have 'prods' array
+        if(localStorage.getItem('saas_demo_v26')) {
+            const saved = JSON.parse(localStorage.getItem('saas_demo_v26'));
             saved.capabilities.forEach(c => { if(!c.prods && c.prod) c.prods = [c.prod]; });
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
@@ -383,7 +439,7 @@
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v24', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v26', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -397,12 +453,45 @@
         if(reload) location.reload();
     }
 
+    // --- IMPORT / EXPORT LOGIC ---
+    function exportData() {
+        const data = { products, features, capabilities, rules, skus, tenants };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "saas_config.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    function importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                // Simple validation
+                if(imported.products && imported.skus) {
+                    localStorage.setItem('saas_demo_v26', JSON.stringify(imported));
+                    location.reload();
+                } else {
+                    alert('Invalid configuration file format');
+                }
+            } catch(err) {
+                alert('Error parsing JSON');
+            }
+        };
+        reader.readAsText(file);
+    }
+
     initData();
 
     // ================== 2. STATE & ROUTING ==================
-    let currView = 'products';
+    let currView = 'features';
     let activeProdId = null;
-    let editingId = null; // Universal Editing ID
+    let editingId = null;
     let editSubRef = null;
     let drawerAddonId = null;
     let ruleTab = 'COMMERCIAL';
@@ -453,7 +542,7 @@
     // ================== 3. VIEWS ==================
 
     function renderFeatures(c, h, ha) {
-        h.innerText = 'Feature Registry';
+        h.innerText = '产品功能 (Features)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('feature')">+ 注册 Feature</button>`;
         c.innerHTML = `<div class="card"><table><thead><tr><th>ID</th><th>名称</th><th>Owner</th><th>操作</th></tr></thead><tbody>
             ${features.map(f => `<tr><td><code class="code-pill">${f.id}</code></td><td>${f.name}</td><td>${f.owner}</td><td><button class="btn btn-icon" onclick="openModal('feature','${f.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('feature','${f.id}')">🗑️</button></td></tr>`).join('')}
@@ -461,7 +550,7 @@
     }
 
     function renderCaps(c, h, ha) {
-        h.innerText = 'Capability Library';
+        h.innerText = '商业能力 (Capabilities)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('cap')">+ 定义 Capability</button>`;
         c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>作用域</th><th>绑定Feature</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
             ${capabilities.map(cap => {
@@ -483,7 +572,7 @@
     }
 
     function renderRules(c, h, ha) {
-        h.innerText = '规则引擎';
+        h.innerText = '规则引擎 (Rules)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('rule')">+ 新建规则</button>`;
         const filtered = rules.filter(r => r.level === ruleTab);
         
@@ -507,7 +596,7 @@
     }
 
     function renderProducts(c, h, ha) {
-        h.innerText = '产品线管理';
+        h.innerText = '产品管理 (Products)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('prod')">+ 新建产品</button>`;
         c.innerHTML = `<div class="prod-grid">${products.map(p => {
             const deps = rules.filter(r => r.level === 'COMMERCIAL' && r.type === 'DEPEND' && r.src === p.id);
@@ -519,7 +608,8 @@
                 <div style="font-size:12px; color:#64748b; margin-top:4px;">Code: ${p.code}</div>
                 ${deps.map(d => `<div class="rel-badge depend">🔗 依赖: ${resolveName(d.tgt, 'COMMERCIAL')}</div>`).join('')}
                 <div style="margin-top:auto; padding-top:10px; font-size:12px; color:#64748b;">
-                    ${skus.filter(s=>s.pid===p.id && s.type==='PLAN').length} Versions
+                    ${skus.filter(s=>s.pid===p.id && s.type==='PLAN').length} Versions, 
+                    ${skus.filter(s=>s.pid===p.id && s.type==='ADDON').length} Add-ons
                 </div>
             </div>`;
         }).join('')}</div>`;
@@ -527,7 +617,7 @@
 
     function renderSkuStudio(c, h, ha) {
         const prod = products.find(p => p.id === activeProdId);
-        h.innerHTML = `<span style="color:#64748b; cursor:pointer" onclick="route('products')">产品线</span> / ${prod.name}`;
+        h.innerHTML = `<span style="color:#64748b; cursor:pointer" onclick="route('products')">产品管理</span> / ${prod.name}`;
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('sku')">+ SKU</button>`;
 
         const plans = skus.filter(s => s.pid === activeProdId && s.type === 'PLAN');
@@ -583,7 +673,7 @@
     }
 
     function renderEnts(c, h, ha) {
-        h.innerText = '客户权益管理';
+        h.innerText = '客户权益 (Entitlements)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('new-t')">+ 签约新客户</button>`;
 
         let html = `<div style="display:flex; flex-direction:column; gap:20px;">`;
@@ -769,7 +859,10 @@
         if(name) {
             if(editingId) {
                 const item = features.find(x=>x.id===editingId); item.name = name; item.owner = owner;
-            } else { if(!id) return alert('ID required'); features.push({id,name,owner}); }
+            } else {
+                if(!id) return alert('ID required');
+                features.push({id,name,owner});
+            }
             saveData(); closeModals(); render(); 
         }
     }
@@ -784,7 +877,9 @@
         if(name) {
             if(editingId) {
                 const c = capabilities.find(x=>x.id===editingId); c.name=name; c.scope=scope; c.fid=fid; c.prods=prods;
-            } else { capabilities.push({id:'c'+Date.now(),name,scope,fid,prods}); }
+            } else {
+                capabilities.push({id:'c'+Date.now(), name, scope, fid, prods});
+            }
             saveData(); closeModals(); render();
         }
     }
@@ -797,7 +892,9 @@
         if(desc) {
             if(editingId) {
                 const r = rules.find(x=>x.id===editingId); r.level=level; r.type=type; r.desc=desc; r.src=src; r.tgt=tgt;
-            } else { rules.push({id:'r'+Date.now(),level,type,desc,src,tgt}); }
+            } else {
+                rules.push({id:'r'+Date.now(),level,type,desc,src,tgt}); 
+            }
             saveData(); closeModals(); ruleTab = level; render();
         }
     }
@@ -808,7 +905,9 @@
         if(name) {
             if(editingId) {
                 const p = products.find(x=>x.id===editingId); p.name=name; p.code=code; p.icon=icon;
-            } else { products.push({id:'p'+Date.now(),name,code,icon}); }
+            } else {
+                products.push({id:'p'+Date.now(),name,code,icon});
+            }
             saveData(); closeModals(); render();
         }
     }
@@ -818,7 +917,9 @@
         if(name) {
             if(editingId) {
                 const s = skus.find(x=>x.id===editingId); s.name=name;
-            } else { skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, ents:[]}); }
+            } else {
+                skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, ents:[]});
+            }
             saveData(); closeModals(); render();
         }
     }
@@ -872,7 +973,6 @@
         const addon = skus.find(s=>s.id===sid);
         // V24 Logic: Filter caps where prods array includes this product ID
         const prodCaps = capabilities.filter(c => (c.prods||[]).includes(addon.pid));
-        
         const list = document.getElementById('drawer-list');
         document.getElementById('drawer-title').innerText = `配置 ${addon.name}`;
         
@@ -887,11 +987,6 @@
         document.getElementById('drawer-overlay').style.display='block';
         document.getElementById('drawer').classList.add('open');
     }
-    function closeDrawer() {
-        document.getElementById('drawer').classList.remove('open');
-        setTimeout(()=>document.getElementById('drawer-overlay').style.display='none',300);
-        render();
-    }
     function toggleAddonEnt(cid) {
         const s = skus.find(x=>x.id===drawerAddonId);
         if(!s.ents.includes(cid)) {
@@ -901,9 +996,14 @@
         } else s.ents = s.ents.filter(x=>x!==cid);
         saveData(); openDrawer(drawerAddonId);
     }
+    function closeDrawer() {
+        document.getElementById('drawer').classList.remove('open');
+        setTimeout(()=>document.getElementById('drawer-overlay').style.display='none',300);
+        render();
+    }
 
     // Init
-    route('products');
+    route('features');
 </script>
 </body>
 </html>
