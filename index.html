@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V31 - Robust Migration</title>
+    <title>SaaS Commercial OS V32 - Capability Categories</title>
     <style>
         /* ================= 样式保持 V28 ================= */
         :root {
@@ -140,6 +140,9 @@
         .sku-actions { visibility: hidden; display: flex; gap: 2px; }
         th:hover .sku-actions { visibility: visible; }
         .sku-price-tag { font-size: 12px; color: #059669; background: #ecfdf5; padding: 2px 6px; border-radius: 4px; width: fit-content; font-weight: 500; border: 1px solid #d1fae5; }
+        
+        /* Category Header in Matrix */
+        .matrix-cat-row { background: #f1f5f9; font-weight: 600; color: #475569; font-size: 12px; padding: 8px 24px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
 
         /* Add-ons */
         .addon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
@@ -301,13 +304,23 @@
     </div>
 </div>
 
-<!-- 2. Capability Modal (V30: Value Type) -->
+<!-- 2. Capability Modal (V32 Update: Categories) -->
 <div class="mask" id="modal-cap">
     <div class="modal">
         <div class="modal-head"><span id="cap-modal-title">定义 Capability</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
             <div class="form-group"><label class="form-label">能力名称</label><input class="form-input" id="cap-name"></div>
             <div style="display:flex; gap:10px;">
+                <div class="form-group" style="flex:1">
+                    <label class="form-label">分类 (Category)</label>
+                    <input class="form-input" id="cap-category" placeholder="e.g. 核心功能" list="cat-list">
+                    <datalist id="cat-list">
+                        <option value="核心功能">
+                        <option value="高级分析">
+                        <option value="安全与合规">
+                        <option value="API与开放">
+                    </datalist>
+                </div>
                 <div class="form-group" style="flex:1">
                     <label class="form-label">作用域</label>
                     <select class="form-select" id="cap-scope">
@@ -316,6 +329,8 @@
                         <option value="GLOBAL">全域级 (Global)</option>
                     </select>
                 </div>
+            </div>
+            <div style="display:flex; gap:10px;">
                 <div class="form-group" style="flex:1">
                     <label class="form-label">值类型</label>
                     <select class="form-select" id="cap-type">
@@ -323,8 +338,11 @@
                         <option value="INT">数值型 (Quota)</option>
                     </select>
                 </div>
+                <div class="form-group" style="flex:1">
+                    <label class="form-label">绑定底层 Feature</label>
+                    <select class="form-select" id="cap-feat"></select>
+                </div>
             </div>
-            <div class="form-group"><label class="form-label">绑定底层 Feature</label><select class="form-select" id="cap-feat"></select></div>
             <div class="form-group">
                 <label class="form-label">适用产品线 (多选)</label>
                 <div class="multi-check-container" id="cap-prods-container"></div>
@@ -573,7 +591,7 @@
     }
 
 
-    // ================== 1. DATA STORE (MEEGO EDITION V31 - SMART MIGRATION) ==================
+    // ================== 1. DATA STORE (MEEGO EDITION V32 - CATEGORIZED) ==================
     
     const defaults = {
         products: [
@@ -595,43 +613,45 @@
             { id: 'feat_data_mig', name: 'Data Migration Service', owner: 'Ops' },
             { id: 'feat_custom_plugin', name: 'Custom Plugins', owner: 'Open API' }
         ],
-        // V30: Added 'type' (BOOL/INT)
+        // V32: Added 'category'
         capabilities: [
-            { id: 'c_base_work', name: '基础工作台 (看板/列表)', scope: 'WORKSPACE', fid: 'feat_list', prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_gantt', name: '甘特图', scope: 'WORKSPACE', fid: 'feat_gantt', prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_sec_basic', name: '安全管理 (基础)', scope: 'TENANT', fid: 'feat_security', prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_api', name: 'API Access', scope: 'WORKSPACE', fid: null, prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_calc_field', name: '计算字段', scope: 'WORKSPACE', fid: 'feat_calc', prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_global_v', name: '全景视图', scope: 'TENANT', fid: 'feat_global_view', prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_cross_org', name: '企业互联', scope: 'TENANT', fid: 'feat_cross_org', prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_adv_perm', name: '高级权限', scope: 'WORKSPACE', fid: 'feat_adv_perm', prods: ['p_meego_prj'], type: 'BOOL' },
-            // INT Type
-            { id: 'c_auto_rule', name: '自动化规则数/月', scope: 'WORKSPACE', fid: 'feat_automation', prods: ['p_meego_prj'], type: 'INT' },
+            { id: 'c_base_work', name: '基础工作台', scope: 'WORKSPACE', fid: 'feat_list', prods: ['p_meego_prj'], type: 'BOOL', category: '核心功能' },
+            { id: 'c_gantt', name: '甘特图', scope: 'WORKSPACE', fid: 'feat_gantt', prods: ['p_meego_prj'], type: 'BOOL', category: '核心功能' },
+            
+            { id: 'c_sec_basic', name: '安全管理', scope: 'TENANT', fid: 'feat_security', prods: ['p_meego_prj'], type: 'BOOL', category: '安全与权限' },
+            { id: 'c_adv_perm', name: '高级权限', scope: 'WORKSPACE', fid: 'feat_adv_perm', prods: ['p_meego_prj'], type: 'BOOL', category: '安全与权限' },
+            { id: 'c_sso', name: 'SAML SSO', scope: 'TENANT', fid: 'feat_sso', prods: ['p_meego_prj'], type: 'BOOL', category: '安全与权限' },
 
-            { id: 'c_branding', name: '品牌定制', scope: 'TENANT', fid: 'feat_branding', prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_migrate', name: '数据迁移服务', scope: 'GLOBAL', fid: 'feat_data_mig', prods: ['p_meego_prj'], type: 'BOOL' },
-            { id: 'c_plugins', name: '自定义插件', scope: 'WORKSPACE', fid: 'feat_custom_plugin', prods: ['p_meego_prj'], type: 'BOOL' }
+            { id: 'c_api', name: 'API Access', scope: 'WORKSPACE', fid: null, prods: ['p_meego_prj'], type: 'BOOL', category: '开放平台' },
+            { id: 'c_plugins', name: '自定义插件', scope: 'WORKSPACE', fid: 'feat_custom_plugin', prods: ['p_meego_prj'], type: 'BOOL', category: '开放平台' },
+            
+            { id: 'c_calc_field', name: '计算字段', scope: 'WORKSPACE', fid: 'feat_calc', prods: ['p_meego_prj'], type: 'BOOL', category: '高级功能' },
+            { id: 'c_global_v', name: '全景视图', scope: 'TENANT', fid: 'feat_global_view', prods: ['p_meego_prj'], type: 'BOOL', category: '高级功能' },
+            
+            { id: 'c_auto_500', name: '自动化规则/月', scope: 'WORKSPACE', fid: 'feat_automation', prods: ['p_meego_prj'], type: 'INT', category: '高级功能' },
+            
+            { id: 'c_branding', name: '品牌定制', scope: 'TENANT', fid: 'feat_branding', prods: ['p_meego_prj'], type: 'BOOL', category: '企业服务' },
+            { id: 'c_migrate', name: '数据迁移服务', scope: 'GLOBAL', fid: 'feat_data_mig', prods: ['p_meego_prj'], type: 'BOOL', category: '企业服务' }
         ],
         rules: [
             { id: 'r1', level: 'COMMERCIAL', type: 'DEPEND', desc: '企业互联需基础安全', src: 'c_cross_org', tgt: 'c_sec_basic' }
         ],
-        // V30: ents is now an Object map { capId: val }
         skus: [
             { 
                 id: 'sku_mp_std', pid: 'p_meego_prj', type: 'PLAN', name: 'Standard', desc: '适合小型团队快速上手', price: 29, billing: 'PER_USER_MO', level: 1, 
-                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_auto_rule': 100 } 
+                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_auto_500': 100 } 
             },
             { 
                 id: 'sku_mp_prm', pid: 'p_meego_prj', type: 'PLAN', name: 'Premium', desc: '助力中型企业高效协作', price: 59, billing: 'PER_USER_MO', level: 2, 
-                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_calc_field': true, 'c_global_v': true, 'c_cross_org': true, 'c_adv_perm': true, 'c_auto_rule': 1000 } 
+                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_calc_field': true, 'c_global_v': true, 'c_cross_org': true, 'c_adv_perm': true, 'c_auto_500': 1000 } 
             },
             { 
                 id: 'sku_mp_ent', pid: 'p_meego_prj', type: 'PLAN', name: 'Enterprise', desc: '大型组织的旗舰之选', price: 0, billing: 'CUSTOM', level: 3, 
-                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_calc_field': true, 'c_global_v': true, 'c_cross_org': true, 'c_adv_perm': true, 'c_auto_rule': 10000, 'c_branding': true, 'c_migrate': true, 'c_plugins': true } 
+                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_calc_field': true, 'c_global_v': true, 'c_cross_org': true, 'c_adv_perm': true, 'c_auto_500': 10000, 'c_branding': true, 'c_migrate': true, 'c_plugins': true, 'c_sso': true } 
             },
             { 
                 id: 'sku_mp_auto_plus', pid: 'p_meego_prj', type: 'ADDON', name: 'Auto+ Pack', desc: '增加 5000 次自动化执行', price: 100, billing: 'FLAT_MO', 
-                ents: { 'c_auto_rule': 5000 } 
+                ents: { 'c_auto_500': 5000 } 
             }
         ],
         tenants: [
@@ -644,14 +664,13 @@
 
     // --- SMART MIGRATION LAYER ---
     function migrateData(data) {
-        // 1. V22 Migration: Ensure capabilities have 'prods' array
         if (data.capabilities) {
             data.capabilities.forEach(c => {
                 if (!c.prods && c.prod) c.prods = [c.prod];
+                // V32: Polyfill category
+                if (!c.category) c.category = '未分类';
             });
         }
-
-        // 2. V30 Migration: Ensure ents is object (Quantified Entitlements)
         if (data.skus) {
             data.skus.forEach(s => {
                 if (Array.isArray(s.ents)) {
@@ -661,17 +680,13 @@
                 }
             });
         }
-        
-        // 3. Future Migrations: Add logic here if you add new fields in code!
-        // Example: if (!data.settings) data.settings = { theme: 'light' };
-
         return data;
     }
 
     function initData() {
-        if(localStorage.getItem('saas_demo_v30')) {
-            let saved = JSON.parse(localStorage.getItem('saas_demo_v30'));
-            saved = migrateData(saved); // Run migration on load
+        if(localStorage.getItem('saas_demo_v32')) {
+            let saved = JSON.parse(localStorage.getItem('saas_demo_v32'));
+            saved = migrateData(saved);
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
         } else {
@@ -681,7 +696,7 @@
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v30', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v32', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -716,7 +731,7 @@
                 let imported = JSON.parse(e.target.result);
                 if(imported.products && imported.skus) {
                     imported = migrateData(imported); // Run migration on import
-                    localStorage.setItem('saas_demo_v30', JSON.stringify(imported));
+                    localStorage.setItem('saas_demo_v32', JSON.stringify(imported));
                     location.reload();
                 } else {
                     alert('Invalid configuration file format');
@@ -805,20 +820,20 @@
     function renderCaps(c, h, ha) {
         h.innerText = '商业能力 (Capabilities)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('cap')">+ 定义 Capability</button>`;
-        c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>作用域</th><th>类型</th><th>绑定Feature</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
+        c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>分类</th><th>作用域</th><th>类型</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
             ${capabilities.map(cap => {
                 const f = features.find(x => x.id === cap.fid);
                 const prodBadges = (cap.prods || []).map(pid => {
                     const p = products.find(x=>x.id===pid);
                     return p ? `<span class="tag tag-green">${p.code}</span>` : '';
                 }).join(' ');
-                const typeTag = cap.type === 'INT' ? '<span class="tag tag-purple">123 (Int)</span>' : '<span class="tag tag-gray">Bool</span>';
+                const typeTag = cap.type === 'INT' ? '<span class="tag tag-purple">数值</span>' : '<span class="tag tag-gray">开关</span>';
                 
                 return `<tr>
                     <td><b>${cap.name}</b></td>
+                    <td>${cap.category || '-'}</td>
                     <td><span class="tag ${cap.scope==='TENANT'?'tag-blue':'tag-orange'}">${cap.scope}</span></td>
                     <td>${typeTag}</td>
-                    <td>${f ? f.name : '-'}</td>
                     <td>${prodBadges}</td>
                     <td><button class="btn btn-icon" onclick="openModal('cap','${cap.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('cap','${cap.id}')">🗑️</button></td>
                 </tr>`;
@@ -880,6 +895,17 @@
 
         const addons = skus.filter(s => s.pid === activeProdId && s.type === 'ADDON');
         const prodCaps = capabilities.filter(c => (c.prods || []).includes(activeProdId));
+        
+        // Group caps by category
+        const catGroups = {};
+        prodCaps.forEach(c => {
+            const cat = c.category || '未分类';
+            if(!catGroups[cat]) catGroups[cat] = [];
+            catGroups[cat].push(c);
+        });
+
+        // Custom sort for categories if needed, or just object keys
+        const categories = Object.keys(catGroups);
 
         c.innerHTML = `
         <h3>Plan Matrix</h3>
@@ -900,23 +926,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    ${prodCaps.map(cap => `<tr>
-                        <td>
-                            <b>${cap.name}</b>
-                            <br><span style="font-size:11px; color:#999">${cap.scope}</span>
-                            ${cap.type === 'INT' ? '<span style="font-size:11px; color:#7e22ce; margin-left:4px;">(数值)</span>' : ''}
-                        </td>
-                        ${plans.map(p => {
-                            const val = p.ents[cap.id];
-                            let cellContent = '';
-                            if (cap.type === 'INT') {
-                                cellContent = val ? `<div class="qty-badge">${val}</div>` : `<div class="qty-badge empty">-</div>`;
-                            } else {
-                                cellContent = `<div class="check-box ${val ? 'checked' : ''}"></div>`;
-                            }
-                            return `<td class="matrix-cell" onclick="toggleEnt('${p.id}','${cap.id}', '${cap.type}')">${cellContent}</td>`;
-                        }).join('')}
-                    </tr>`).join('')}
+                    ${categories.map(cat => `
+                        <tr><td colspan="${plans.length+1}" class="matrix-cat-row">${cat}</td></tr>
+                        ${catGroups[cat].map(cap => `<tr>
+                            <td>
+                                <b>${cap.name}</b>
+                                <br><span style="font-size:11px; color:#999">${cap.scope}</span>
+                                ${cap.type === 'INT' ? '<span style="font-size:11px; color:#7e22ce; margin-left:4px;">(数值)</span>' : ''}
+                            </td>
+                            ${plans.map(p => {
+                                const val = p.ents[cap.id];
+                                let cellContent = '';
+                                if (cap.type === 'INT') {
+                                    cellContent = val ? `<div class="qty-badge">${val}</div>` : `<div class="qty-badge empty">-</div>`;
+                                } else {
+                                    cellContent = `<div class="check-box ${val ? 'checked' : ''}"></div>`;
+                                }
+                                return `<td class="matrix-cell" onclick="toggleEnt('${p.id}','${cap.id}', '${cap.type}')">${cellContent}</td>`;
+                            }).join('')}
+                        </tr>`).join('')}
+                    `).join('')}
                 </tbody>
             </table>
         </div>
@@ -1062,10 +1091,11 @@
         const isEdit = !!id;
         
         if(type === 'cap') {
-            const item = id ? capabilities.find(x=>x.id===id) : {name:'', scope:'WORKSPACE', fid:'', prods:[], type: 'BOOL'};
+            const item = id ? capabilities.find(x=>x.id===id) : {name:'', scope:'WORKSPACE', fid:'', prods:[], type: 'BOOL', category: ''};
             document.getElementById('cap-modal-title').innerText = isEdit ? '编辑 Capability' : '定义 Capability';
             document.getElementById('cap-name').value = item.name;
             document.getElementById('cap-scope').value = item.scope;
+            document.getElementById('cap-category').value = item.category || '';
             document.getElementById('cap-feat').innerHTML = '<option value="">(None)</option>' + features.map(f=>`<option value="${f.id}" ${f.id===item.fid?'selected':''}>${f.name}</option>`).join('');
             
             // V30: Type Select
@@ -1173,6 +1203,7 @@
     function saveCap() {
         const name = document.getElementById('cap-name').value;
         const scope = document.getElementById('cap-scope').value;
+        const category = document.getElementById('cap-category').value;
         const fid = document.getElementById('cap-feat').value;
         const type = document.getElementById('cap-type').value;
         const checkboxes = document.querySelectorAll('#cap-prods-container input[type="checkbox"]:checked');
@@ -1180,9 +1211,9 @@
         
         if(name) {
             if(editingId) {
-                const c = capabilities.find(x=>x.id===editingId); c.name=name; c.scope=scope; c.fid=fid; c.prods=prods; c.type=type;
+                const c = capabilities.find(x=>x.id===editingId); c.name=name; c.scope=scope; c.fid=fid; c.prods=prods; c.type=type; c.category=category;
             } else {
-                capabilities.push({id:'c'+Date.now(), name, scope, fid, prods, type});
+                capabilities.push({id:'c'+Date.now(), name, scope, fid, prods, type, category});
             }
             saveData(); closeModals(); render();
         }
