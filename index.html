@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V33 - Advanced Pricing & Categories</title>
+    <title>SaaS Commercial OS V34 - Multi-Dependency & Flat Yearly</title>
     <style>
-        /* ================= 样式保持 ================= */
+        /* ================= 样式保持 V28 ================= */
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
@@ -364,10 +364,20 @@
                 </select>
             </div>
             <div class="form-group"><label class="form-label">描述</label><input class="form-input" id="rule-desc"></div>
-            <div style="display:flex; gap:10px;">
-                <div class="form-group" style="flex:1"><label class="form-label">主体 (Source)</label><select class="form-select" id="rule-src"></select></div>
-                <div class="form-group" style="flex:1"><label class="form-label">目标 (Target)</label><select class="form-select" id="rule-tgt"></select></div>
+            
+            <!-- Source Selection -->
+            <div class="form-group">
+                <label class="form-label" id="lbl-src">主体 (Source)</label>
+                <select class="form-select" id="rule-src"></select>
             </div>
+
+            <!-- Target Selection (Supports Multiple) -->
+            <div class="form-group">
+                <label class="form-label" id="lbl-tgt">目标 (Target) - 按住Ctrl/Cmd多选</label>
+                <select class="form-select" id="rule-tgt" multiple size="4" style="height: 100px;"></select>
+                <div style="font-size:11px; color:#64748b; margin-top:4px;">当类型为“依赖”时，多选代表“依赖其中之一 (OR)”关系</div>
+            </div>
+
         </div>
         <div class="modal-foot"><button class="btn btn-primary" onclick="saveRule()">保存</button></div>
     </div>
@@ -419,6 +429,7 @@
             <div class="form-group" id="sku-level-group">
                 <label class="form-label">版本级别 (Level)</label>
                 <input type="number" class="form-input" id="sku-level" placeholder="1 (Low) -> 10 (High)" value="1">
+                <div style="font-size:11px; color:#94a3b8; margin-top:4px;">用于矩阵从左到右排序，级别越高功能越多</div>
             </div>
         </div>
         <div class="modal-foot"><button class="btn btn-primary" onclick="saveSku()">保存</button></div>
@@ -575,79 +586,734 @@
     }
 
 
-    // ================== 1. DATA STORE (MEEGO EDITION V33 - ADVANCED) ==================
+    // ================== 1. DATA STORE ==================
     
     const defaults = {
-        products: [
-            { id: 'p_meego_prj', name: 'Meego Project', code: 'PRJ', icon: 'P' },
-            { id: 'p_meego_ipd', name: 'Meego IPD', code: 'IPD', icon: 'I' },
-            { id: 'p_meego_ltc', name: 'Meego LTC', code: 'LTC', icon: 'L' },
-            { id: 'p_basic', name: 'Basic Platform', code: 'BSC', icon: 'B' }
-        ],
-        features: [
-            { id: 'feat_list', name: 'List/Board Views', owner: 'Core Team' },
-            { id: 'feat_gantt', name: 'Gantt Chart', owner: 'Core Team' },
-            { id: 'feat_calc', name: 'Calculated Fields', owner: 'Platform' },
-            { id: 'feat_global_view', name: 'Global View', owner: 'Platform' },
-            { id: 'feat_cross_org', name: 'Enterprise Interconnect', owner: 'Collaboration' },
-            { id: 'feat_adv_perm', name: 'Advanced Permissions', owner: 'Identity' },
-            { id: 'feat_security', name: 'Security Mgmt', owner: 'Sec Team' },
-            { id: 'feat_automation', name: 'Automation Rules', owner: 'Automation' },
-            { id: 'feat_branding', name: 'Brand Customization', owner: 'Frontend' },
-            { id: 'feat_data_mig', name: 'Data Migration Service', owner: 'Ops' },
-            { id: 'feat_custom_plugin', name: 'Custom Plugins', owner: 'Open API' }
-        ],
-        // V33: categoryMap replaces category
-        capabilities: [
-            { id: 'c_base_work', name: '基础工作台', scope: 'WORKSPACE', fid: 'feat_list', type: 'BOOL', categoryMap: { 'p_meego_prj': '核心功能' } },
-            { id: 'c_gantt', name: '甘特图', scope: 'WORKSPACE', fid: 'feat_gantt', type: 'BOOL', categoryMap: { 'p_meego_prj': '核心功能' } },
-            
-            { id: 'c_sec_basic', name: '安全管理', scope: 'TENANT', fid: 'feat_security', type: 'BOOL', categoryMap: { 'p_meego_prj': '安全与权限', 'p_basic': '基础安全' } },
-            { id: 'c_adv_perm', name: '高级权限', scope: 'WORKSPACE', fid: 'feat_adv_perm', type: 'BOOL', categoryMap: { 'p_meego_prj': '安全与权限' } },
-            { id: 'c_sso', name: 'SAML SSO', scope: 'TENANT', fid: 'feat_sso', type: 'BOOL', categoryMap: { 'p_meego_prj': '安全与权限', 'p_basic': '企业级服务' } },
-
-            { id: 'c_api', name: 'API Access', scope: 'WORKSPACE', fid: null, type: 'BOOL', categoryMap: { 'p_meego_prj': '开放平台' } },
-            { id: 'c_plugins', name: '自定义插件', scope: 'WORKSPACE', fid: 'feat_custom_plugin', type: 'BOOL', categoryMap: { 'p_meego_prj': '开放平台' } },
-            
-            { id: 'c_calc_field', name: '计算字段', scope: 'WORKSPACE', fid: 'feat_calc', type: 'BOOL', categoryMap: { 'p_meego_prj': '高级功能' } },
-            { id: 'c_global_v', name: '全景视图', scope: 'TENANT', fid: 'feat_global_view', type: 'BOOL', categoryMap: { 'p_meego_prj': '高级功能' } },
-            
-            { id: 'c_auto_500', name: '自动化规则/月', scope: 'WORKSPACE', fid: 'feat_automation', type: 'INT', categoryMap: { 'p_meego_prj': '高级功能' } },
-            
-            { id: 'c_branding', name: '品牌定制', scope: 'TENANT', fid: 'feat_branding', type: 'BOOL', categoryMap: { 'p_meego_prj': '企业服务' } },
-            { id: 'c_migrate', name: '数据迁移服务', scope: 'GLOBAL', fid: 'feat_data_mig', type: 'BOOL', categoryMap: { 'p_meego_prj': '企业服务' } }
-        ],
-        rules: [
-            { id: 'r1', level: 'COMMERCIAL', type: 'DEPEND', desc: '企业互联需基础安全', src: 'c_cross_org', tgt: 'c_sec_basic' }
-        ],
-        // V33: pricing array
-        skus: [
-            { 
-                id: 'sku_mp_std', pid: 'p_meego_prj', type: 'PLAN', name: 'Standard', desc: '适合小型团队快速上手', level: 1, 
-                pricing: [{ mode: 'PER_USER_MO', price: 29 }, { mode: 'PER_USER_YR', price: 290 }],
-                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_auto_500': 100 } 
-            },
-            { 
-                id: 'sku_mp_prm', pid: 'p_meego_prj', type: 'PLAN', name: 'Premium', desc: '助力中型企业高效协作', level: 2, 
-                pricing: [{ mode: 'PER_USER_MO', price: 59 }, { mode: 'PER_USER_YR', price: 590 }],
-                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_calc_field': true, 'c_global_v': true, 'c_cross_org': true, 'c_adv_perm': true, 'c_auto_500': 1000 } 
-            },
-            { 
-                id: 'sku_mp_ent', pid: 'p_meego_prj', type: 'PLAN', name: 'Enterprise', desc: '大型组织的旗舰之选', level: 3, 
-                pricing: [{ mode: 'CUSTOM', price: 0 }],
-                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_calc_field': true, 'c_global_v': true, 'c_cross_org': true, 'c_adv_perm': true, 'c_auto_500': 10000, 'c_branding': true, 'c_migrate': true, 'c_plugins': true, 'c_sso': true } 
-            },
-            { 
-                id: 'sku_mp_auto_plus', pid: 'p_meego_prj', type: 'ADDON', name: 'Auto+ Pack', desc: '增加 5000 次自动化执行', 
-                pricing: [{ mode: 'FLAT_MO', price: 100 }],
-                ents: { 'c_auto_500': 5000 } 
-            }
-        ],
-        tenants: [
-            { id: 't1', name: 'Li Auto', subs: [{ skuId: 'sku_mp_ent', seats: 2000, status: 'Active', end: '2026-01-01' }] },
-            { id: 't2', name: 'NIO', subs: [{ skuId: 'sku_mp_prm', seats: 500, status: 'Active', end: '2025-06-30' }] }
-        ]
-    };
+  "products": [
+    {
+      "id": "p_meego_prj",
+      "name": "Meego Project",
+      "code": "PRJ",
+      "icon": "P"
+    },
+    {
+      "id": "p_meego_ipd",
+      "name": "Meego IPD",
+      "code": "IPD",
+      "icon": "I"
+    },
+    {
+      "id": "p_meego_ltc",
+      "name": "Meego LTC",
+      "code": "LTC",
+      "icon": "L"
+    },
+    {
+      "id": "p_basic",
+      "name": "Basic Platform",
+      "code": "BSC",
+      "icon": "B"
+    }
+  ],
+  "features": [
+    {
+      "id": "feat_list",
+      "name": "List/Board Views",
+      "owner": "Core Team"
+    },
+    {
+      "id": "feat_gantt",
+      "name": "Gantt Chart",
+      "owner": "Core Team"
+    },
+    {
+      "id": "feat_calc",
+      "name": "Calculated Fields",
+      "owner": "Platform"
+    },
+    {
+      "id": "feat_global_view",
+      "name": "Global View",
+      "owner": "Platform"
+    },
+    {
+      "id": "feat_cross_org",
+      "name": "Enterprise Interconnect",
+      "owner": "Collaboration"
+    },
+    {
+      "id": "feat_adv_perm",
+      "name": "Advanced Permissions",
+      "owner": "Identity"
+    },
+    {
+      "id": "feat_security",
+      "name": "Security Mgmt",
+      "owner": "Sec Team"
+    },
+    {
+      "id": "feat_automation",
+      "name": "Automation Rules",
+      "owner": "Automation"
+    },
+    {
+      "id": "feat_branding",
+      "name": "Brand Customization",
+      "owner": "Frontend"
+    },
+    {
+      "id": "feat_data_mig",
+      "name": "Data Migration Service",
+      "owner": "Ops"
+    },
+    {
+      "id": "feat_custom_plugin",
+      "name": "Custom Plugins",
+      "owner": "Open API"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "c_base_work",
+      "name": "数据导入导出",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "核心功能",
+        "p_meego_ipd": "核心功能",
+        "p_meego_ltc": "核心功能"
+      }
+    },
+    {
+      "id": "c_gantt",
+      "name": "附件能力",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "核心功能",
+        "p_meego_ipd": "核心功能",
+        "p_meego_ltc": "核心功能"
+      }
+    },
+    {
+      "id": "c_sec_basic",
+      "name": "排期默认值",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "核心功能"
+      }
+    },
+    {
+      "id": "c_api",
+      "name": "计算字段",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "高级资源",
+        "p_meego_ipd": "高级资源",
+        "p_meego_ltc": "高级资源"
+      }
+    },
+    {
+      "id": "c_calc_field",
+      "name": "视图控件",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "高级资源",
+        "p_meego_ipd": "高级资源",
+        "p_meego_ltc": "高级资源"
+      }
+    },
+    {
+      "id": "c_global_v",
+      "name": "关联工作项信息",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "高级资源",
+        "p_meego_ipd": "高级资源",
+        "p_meego_ltc": "高级资源"
+      }
+    },
+    {
+      "id": "c_cross_org",
+      "name": "树形视图",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "视图与报告",
+        "p_meego_ipd": "视图与报告",
+        "p_meego_ltc": "视图与报告"
+      }
+    },
+    {
+      "id": "c_adv_perm",
+      "name": "度量视图",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "视图与报告",
+        "p_meego_ipd": "视图与报告",
+        "p_meego_ltc": "视图与报告"
+      }
+    },
+    {
+      "id": "c_auto_rule",
+      "name": "全景视图",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "视图与报告",
+        "p_meego_ipd": "视图与报告",
+        "p_meego_ltc": "视图与报告"
+      }
+    },
+    {
+      "id": "c_branding",
+      "name": "人员甘特图（跨空间）",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "视图与报告",
+        "p_meego_ipd": "视图与报告",
+        "p_meego_ltc": "视图与报告"
+      }
+    },
+    {
+      "id": "c_migrate",
+      "name": "度量计算字段",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "视图与报告",
+        "p_meego_ipd": "视图与报告",
+        "p_meego_ltc": "视图与报告"
+      }
+    },
+    {
+      "id": "c_plugins",
+      "name": "自定义用户组",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "prods": [
+        "p_meego_prj"
+      ],
+      "type": "BOOL",
+      "categoryMap": {
+        "p_meego_prj": "管理与控制",
+        "p_meego_ipd": "管理与控制",
+        "p_meego_ltc": "管理与控制"
+      }
+    },
+    {
+      "id": "c1764582876851",
+      "name": "自定义团队",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "管理与控制",
+        "p_meego_ipd": "管理与控制",
+        "p_meego_ltc": "管理与控制"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764582901677",
+      "name": "席位分组管理",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "管理与控制",
+        "p_meego_ipd": "管理与控制",
+        "p_meego_ltc": "管理与控制"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764582937003",
+      "name": "页面水印",
+      "scope": "TENANT",
+      "fid": "",
+      "categoryMap": {
+        "p_basic": "管理与控制"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764582972083",
+      "name": "应用飞书访问策略管控",
+      "scope": "TENANT",
+      "fid": "",
+      "categoryMap": {
+        "p_basic": "管理与控制"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764582992964",
+      "name": "复合子段子字段查看权限",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "管理与控制",
+        "p_meego_ipd": "管理与控制",
+        "p_meego_ltc": "管理与控制"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764588578413",
+      "name": "高级多语言支持",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764588599288",
+      "name": "空间基准时区",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764588617982",
+      "name": "企业互联",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764588662369",
+      "name": "企业日历",
+      "scope": "GLOBAL",
+      "fid": "",
+      "categoryMap": {
+        "p_basic": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764588683317",
+      "name": "工作项高级配置（层级管理）",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589647152",
+      "name": "父子关系",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589677318",
+      "name": "节点/任务依赖关系",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589701829",
+      "name": "节点自定义按钮",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589717409",
+      "name": "工作项资源库",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589745892",
+      "name": "空间关联/关系管理/跨空间授权",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "工作协同",
+        "p_meego_ipd": "工作协同",
+        "p_meego_ltc": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589794115",
+      "name": "WBS计划表/泳道图/插件（IPD评审&文档创建）等",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "进阶管理",
+        "p_meego_ipd": "进阶管理"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589829873",
+      "name": "插件市场",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "集成与开放能力",
+        "p_meego_ipd": "集成与开放能力",
+        "p_meego_ltc": "集成与开放能力"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589844181",
+      "name": "企业自建插件",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "集成与开放能力",
+        "p_meego_ipd": "集成与开放能力",
+        "p_meego_ltc": "集成与开放能力"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589860459",
+      "name": "标准API",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "集成与开放能力",
+        "p_meego_ipd": "集成与开放能力",
+        "p_meego_ltc": "集成与开放能力"
+      },
+      "type": "INT"
+    },
+    {
+      "id": "c1764589876840",
+      "name": "高级API",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "集成与开放能力",
+        "p_meego_ipd": "集成与开放能力",
+        "p_meego_ltc": "集成与开放能力"
+      },
+      "type": "INT"
+    },
+    {
+      "id": "c1764589898569",
+      "name": "Webhook",
+      "scope": "WORKSPACE",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "集成与开放能力",
+        "p_meego_ipd": "集成与开放能力",
+        "p_meego_ltc": "集成与开放能力"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589927025",
+      "name": "企业模板市场",
+      "scope": "TENANT",
+      "fid": "",
+      "categoryMap": {
+        "p_meego_prj": "集成与开放能力",
+        "p_meego_ipd": "集成与开放能力",
+        "p_meego_ltc": "集成与开放能力"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589965561",
+      "name": "数据报表",
+      "scope": "TENANT",
+      "fid": "",
+      "categoryMap": {
+        "p_basic": "进阶管理"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764589984325",
+      "name": "跨境互通",
+      "scope": "TENANT",
+      "fid": "",
+      "categoryMap": {
+        "p_basic": "工作协同"
+      },
+      "type": "BOOL"
+    },
+    {
+      "id": "c1764590014700",
+      "name": "IP白名单",
+      "scope": "TENANT",
+      "fid": "",
+      "categoryMap": {
+        "p_basic": "管理与控制"
+      },
+      "type": "BOOL"
+    }
+  ],
+  "rules": [
+    {
+      "id": "r1",
+      "level": "COMMERCIAL",
+      "type": "DEPEND",
+      "desc": "企业互联需基础安全",
+      "src": "c_cross_org",
+      "tgt": "c_sec_basic"
+    },
+    {
+      "id": "r1764590169057",
+      "level": "COMMERCIAL",
+      "type": "DEPEND",
+      "desc": "Project Premium才可用IPD高级功能",
+      "src": "s1764590114085",
+      "tgt": "sku_mp_prm"
+    },
+    {
+      "id": "r1764590302491",
+      "level": "COMMERCIAL",
+      "type": "DEPEND",
+      "desc": "品牌定制仅支持Premium及以上产品",
+      "src": "s1764590254369",
+      "tgt": "sku_mp_prm"
+    }
+  ],
+  "skus": [
+    {
+      "id": "sku_mp_std",
+      "pid": "p_meego_prj",
+      "type": "PLAN",
+      "name": "Standard",
+      "desc": "适合小型团队快速上手",
+      "level": 1,
+      "ents": {
+        "c_base_work": true,
+        "c_gantt": true,
+        "c_sec_basic": true,
+        "c_api": true,
+        "c_auto_rule": 100
+      },
+      "pricing": [
+        {
+          "mode": "PER_USER_MO",
+          "price": 8
+        }
+      ]
+    },
+    {
+      "id": "sku_mp_prm",
+      "pid": "p_meego_prj",
+      "type": "PLAN",
+      "name": "Premium",
+      "desc": "助力中型企业高效协作",
+      "level": 2,
+      "ents": {
+        "c_base_work": true,
+        "c_gantt": true,
+        "c_sec_basic": true,
+        "c_api": true,
+        "c_calc_field": true,
+        "c_global_v": true,
+        "c_cross_org": true,
+        "c_adv_perm": true,
+        "c_auto_rule": 1000
+      },
+      "pricing": [
+        {
+          "mode": "PER_USER_MO",
+          "price": 12
+        }
+      ]
+    },
+    {
+      "id": "sku_mp_ent",
+      "pid": "p_meego_prj",
+      "type": "PLAN",
+      "name": "Enterprise",
+      "desc": "大型组织的旗舰之选",
+      "level": 3,
+      "ents": {
+        "c_base_work": true,
+        "c_gantt": true,
+        "c_sec_basic": true,
+        "c_api": true,
+        "c_calc_field": true,
+        "c_global_v": true,
+        "c_cross_org": true,
+        "c_adv_perm": true,
+        "c_auto_rule": 10000,
+        "c_branding": true,
+        "c_migrate": true,
+        "c_plugins": true
+      },
+      "pricing": [
+        {
+          "mode": "CUSTOM",
+          "price": 0
+        }
+      ]
+    },
+    {
+      "id": "sku_mp_auto_plus",
+      "pid": "p_meego_prj",
+      "type": "ADDON",
+      "name": "Auto+ Pack",
+      "desc": "增加 5000 次自动化执行",
+      "ents": {
+        "c_auto_rule": 5000
+      },
+      "pricing": [
+        {
+          "mode": "FLAT_MO",
+          "price": 100
+        }
+      ]
+    },
+    {
+      "id": "s1764590114085",
+      "pid": "p_meego_prj",
+      "type": "ADDON",
+      "name": "IPD高级功能",
+      "desc": "",
+      "pricing": [
+        {
+          "mode": "PER_USER_MO",
+          "price": 5
+        }
+      ],
+      "level": 1,
+      "ents": {}
+    },
+    {
+      "id": "s1764590254369",
+      "pid": "p_meego_prj",
+      "type": "ADDON",
+      "name": "品牌定制",
+      "desc": "",
+      "pricing": [
+        {
+          "mode": "FLAT_MO",
+          "price": 6000
+        }
+      ],
+      "level": 1,
+      "ents": {}
+    }
+  ],
+  "tenants": [
+    {
+      "id": "t1",
+      "name": "Li Auto",
+      "subs": [
+        {
+          "skuId": "sku_mp_ent",
+          "seats": 2000,
+          "status": "Active",
+          "end": "2026-01-01"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "NIO",
+      "subs": [
+        {
+          "skuId": "sku_mp_prm",
+          "seats": 500,
+          "status": "Active",
+          "end": "2025-06-30"
+        }
+      ]
+    }
+  ]
+};
 
     let products, features, capabilities, rules, skus, tenants;
 
@@ -794,6 +1460,10 @@
     }
 
     function resolveName(id, level) {
+        // Handle multiple IDs (array)
+        if (Array.isArray(id)) {
+            return id.map(i => resolveName(i, level)).join(' 或 ');
+        }
         if(level === 'COMMERCIAL') {
             const p = products.find(x => x.id === id); if(p) return `产品: ${p.name}`;
             const s = skus.find(x => x.id === id); if(s) return `SKU: ${s.name}`;
@@ -811,6 +1481,7 @@
             'PER_USER_MO': '/人/月',
             'PER_USER_YR': '/人/年',
             'FLAT_MO': '/月',
+            'FLAT_YR': '/年',
             'ONE_TIME': '一次性',
             'CUSTOM': '询价'
         };
@@ -834,27 +1505,28 @@
     function renderCaps(c, h, ha) {
         h.innerText = '商业能力 (Capabilities)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('cap')">+ 定义 Capability</button>`;
-        c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>作用域</th><th>类型</th><th>绑定Feature</th><th>适用产品 (及分类)</th><th>操作</th></tr></thead><tbody>
+        c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>分类</th><th>作用域</th><th>类型</th><th>绑定Feature</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
             ${capabilities.map(cap => {
                 const f = features.find(x => x.id === cap.fid);
                 
                 // V33: Show product with specific category
                 const catMap = cap.categoryMap || {};
-                const prodBadges = Object.keys(catMap).map(pid => {
+                const prodBadges = (cap.prods || []).map(pid => {
                     const p = products.find(x=>x.id===pid);
                     if (!p) return '';
                     const cat = catMap[pid];
-                    return `<div style="font-size:11px; margin-bottom:2px;"><span class="tag tag-green" style="margin:0;">${p.code}</span> <span style="color:#64748b;">${cat}</span></div>`;
+                    return `<div style="font-size:11px; margin-bottom:2px;"><span class="tag tag-green" style="margin:0;">${p.code}</span> <span style="color:#64748b;">${cat || ''}</span></div>`;
                 }).join('');
 
                 const typeTag = cap.type === 'INT' ? '<span class="tag tag-purple">数值</span>' : '<span class="tag tag-gray">开关</span>';
                 
                 return `<tr>
                     <td><b>${cap.name}</b></td>
+                    <td>${cap.categoryMap ? '按产品配置' : '-'}</td>
                     <td><span class="tag ${cap.scope==='TENANT'?'tag-blue':'tag-orange'}">${cap.scope}</span></td>
                     <td>${typeTag}</td>
                     <td>${f ? f.name : '-'}</td>
-                    <td>${prodBadges || '-'}</td>
+                    <td>${prodBadges}</td>
                     <td><button class="btn btn-icon" onclick="openModal('cap','${cap.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('cap','${cap.id}')">🗑️</button></td>
                 </tr>`;
             }).join('')}
@@ -1115,6 +1787,7 @@
                 <option value="PER_USER_MO" ${mode==='PER_USER_MO'?'selected':''}>每人/月</option>
                 <option value="PER_USER_YR" ${mode==='PER_USER_YR'?'selected':''}>每人/年</option>
                 <option value="FLAT_MO" ${mode==='FLAT_MO'?'selected':''}>固定/月</option>
+                <option value="FLAT_YR" ${mode==='FLAT_YR'?'selected':''}>固定/年</option>
                 <option value="ONE_TIME" ${mode==='ONE_TIME'?'selected':''}>一次性</option>
                 <option value="CUSTOM" ${mode==='CUSTOM'?'selected':''}>询价</option>
             </select>
@@ -1170,8 +1843,27 @@
             updateRuleModalUI(); 
             document.getElementById('rule-type').value = item.type;
             document.getElementById('rule-desc').value = item.desc;
-            document.getElementById('rule-src').value = item.src;
-            document.getElementById('rule-tgt').value = item.tgt;
+            
+            // For Edit mode, pre-select values. If it's an array, we need to handle it.
+            const srcSel = document.getElementById('rule-src');
+            const tgtSel = document.getElementById('rule-tgt');
+            
+            // Simple set for now - complex multiselect handling requires more logic not fully implemented in bare Select
+            srcSel.value = item.src;
+            
+            // Handle multi-select Target for DEPEND rules (array support)
+            // Reset selection
+            for(let i=0; i<tgtSel.options.length; i++) tgtSel.options[i].selected = false;
+            
+            if (Array.isArray(item.tgt)) {
+                item.tgt.forEach(val => {
+                     for(let i=0; i<tgtSel.options.length; i++) {
+                         if (tgtSel.options[i].value === val) tgtSel.options[i].selected = true;
+                     }
+                });
+            } else {
+                tgtSel.value = item.tgt;
+            }
         }
         if(type === 'prod') {
             document.getElementById('prod-modal-title').innerText = isEdit ? '编辑产品线' : '新建产品线';
@@ -1235,7 +1927,13 @@
             options += `<optgroup label="Capabilities">` + capabilities.map(c => `<option value="${c.id}">${c.name}</option>`).join('') + `</optgroup>`;
             options += `<optgroup label="Features">` + features.map(f => `<option value="${f.id}">${f.name}</option>`).join('') + `</optgroup>`;
         }
-        srcSel.innerHTML = options; tgtSel.innerHTML = options;
+        srcSel.innerHTML = options; 
+        
+        // V34: Allow multiple select for Target only
+        tgtSel.innerHTML = options;
+        
+        // Ensure simple select for Source for now to keep UI simple
+        srcSel.removeAttribute('multiple');
     }
 
     // CRUD Ops
@@ -1284,12 +1982,21 @@
         const type = document.getElementById('rule-type').value;
         const desc = document.getElementById('rule-desc').value;
         const src = document.getElementById('rule-src').value;
-        const tgt = document.getElementById('rule-tgt').value;
+        
+        // Capture multiple targets
+        const tgtOpts = document.getElementById('rule-tgt').options;
+        const tgt = [];
+        for (let i = 0; i < tgtOpts.length; i++) {
+            if(tgtOpts[i].selected) tgt.push(tgtOpts[i].value);
+        }
+        
+        const finalTgt = tgt.length === 1 ? tgt[0] : tgt;
+
         if(desc) {
             if(editingId) {
-                const r = rules.find(x=>x.id===editingId); r.level=level; r.type=type; r.desc=desc; r.src=src; r.tgt=tgt;
+                const r = rules.find(x=>x.id===editingId); r.level=level; r.type=type; r.desc=desc; r.src=src; r.tgt=finalTgt;
             } else {
-                rules.push({id:'r'+Date.now(),level,type,desc,src,tgt}); 
+                rules.push({id:'r'+Date.now(),level,type,desc,src,tgt: finalTgt}); 
             }
             saveData(); closeModals(); ruleTab = level; render();
         }
