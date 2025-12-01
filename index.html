@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V30 - Quantified Entitlements</title>
+    <title>SaaS Commercial OS V31 - Robust Migration</title>
     <style>
         /* ================= 样式保持 V28 ================= */
         :root {
@@ -573,7 +573,7 @@
     }
 
 
-    // ================== 1. DATA STORE (MEEGO EDITION V30 - QUANTIFIED) ==================
+    // ================== 1. DATA STORE (MEEGO EDITION V31 - SMART MIGRATION) ==================
     
     const defaults = {
         products: [
@@ -642,17 +642,36 @@
 
     let products, features, capabilities, rules, skus, tenants;
 
-    function initData() {
-        if(localStorage.getItem('saas_demo_v30')) {
-            const saved = JSON.parse(localStorage.getItem('saas_demo_v30'));
-            // V30 Migration: Ensure ents is object
-            saved.skus.forEach(s => {
+    // --- SMART MIGRATION LAYER ---
+    function migrateData(data) {
+        // 1. V22 Migration: Ensure capabilities have 'prods' array
+        if (data.capabilities) {
+            data.capabilities.forEach(c => {
+                if (!c.prods && c.prod) c.prods = [c.prod];
+            });
+        }
+
+        // 2. V30 Migration: Ensure ents is object (Quantified Entitlements)
+        if (data.skus) {
+            data.skus.forEach(s => {
                 if (Array.isArray(s.ents)) {
                     const newEnts = {};
                     s.ents.forEach(c => newEnts[c] = true);
                     s.ents = newEnts;
                 }
             });
+        }
+        
+        // 3. Future Migrations: Add logic here if you add new fields in code!
+        // Example: if (!data.settings) data.settings = { theme: 'light' };
+
+        return data;
+    }
+
+    function initData() {
+        if(localStorage.getItem('saas_demo_v30')) {
+            let saved = JSON.parse(localStorage.getItem('saas_demo_v30'));
+            saved = migrateData(saved); // Run migration on load
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
         } else {
@@ -694,16 +713,9 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const imported = JSON.parse(e.target.result);
+                let imported = JSON.parse(e.target.result);
                 if(imported.products && imported.skus) {
-                    // Migration logic if needed on import
-                    imported.skus.forEach(s => {
-                        if(Array.isArray(s.ents)) {
-                            const newEnts = {};
-                            s.ents.forEach(c => newEnts[c] = true);
-                            s.ents = newEnts;
-                        }
-                    });
+                    imported = migrateData(imported); // Run migration on import
                     localStorage.setItem('saas_demo_v30', JSON.stringify(imported));
                     location.reload();
                 } else {
@@ -719,7 +731,7 @@
     initData();
 
     // ================== 2. STATE & ROUTING ==================
-    let currView = 'products';
+    let currView = 'features';
     let activeProdId = null;
     let editingId = null;
     let editSubRef = null;
@@ -993,7 +1005,6 @@
 
     function checkMutex(sku, capId) {
         const capToAdd = capabilities.find(c=>c.id===capId);
-        // Check existing caps (keys of ents object)
         for(const exist of Object.keys(sku.ents)) {
             // Direct capability conflict
             const conflict = rules.find(r => r.type==='MUTEX' && r.level==='TECHNICAL' && 
