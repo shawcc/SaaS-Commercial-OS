@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V29 - AI Ready</title>
+    <title>SaaS Commercial OS V30 - Quantified Entitlements</title>
     <style>
         /* ================= 样式保持 V28 ================= */
         :root {
@@ -107,6 +107,7 @@
         .tag-green { background: #dcfce7; color: #166534; }
         .tag-red { background: #fef2f2; color: #991b1b; }
         .tag-yellow { background: #fef3c7; color: #b45309; }
+        .tag-gray { background: #f3f4f6; color: #4b5563; }
 
         /* --- Packaging Views --- */
         .prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
@@ -122,12 +123,18 @@
 
         /* Matrix */
         .matrix-container { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: white; margin-bottom: 30px;}
-        .matrix-cell { text-align: center; cursor: pointer; transition: 0.2s; }
+        .matrix-cell { text-align: center; cursor: pointer; transition: 0.2s; position: relative; }
         .matrix-cell:hover { background: #f8fafc; }
+        
+        /* Boolean Checkbox */
         .check-box { width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 4px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
         .check-box.checked { background: var(--primary); border-color: var(--primary); color: white; }
         .check-box.checked::after { content: '✓'; font-size: 12px; font-weight: bold; }
         
+        /* Quantity Badge */
+        .qty-badge { font-size: 13px; font-weight: 600; color: #2563eb; background: #eff6ff; padding: 4px 8px; border-radius: 6px; border: 1px solid #bfdbfe; display: inline-block; min-width: 40px; }
+        .qty-badge.empty { color: #9ca3af; background: transparent; border: 1px dashed #e5e7eb; font-weight: 400; }
+
         .sku-header-content { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; }
         .sku-header-row { display: flex; justify-content: space-between; align-items: center; }
         .sku-actions { visibility: hidden; display: flex; gap: 2px; }
@@ -294,18 +301,28 @@
     </div>
 </div>
 
-<!-- 2. Capability Modal -->
+<!-- 2. Capability Modal (V30: Value Type) -->
 <div class="mask" id="modal-cap">
     <div class="modal">
         <div class="modal-head"><span id="cap-modal-title">定义 Capability</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
         <div class="modal-body">
             <div class="form-group"><label class="form-label">能力名称</label><input class="form-input" id="cap-name"></div>
-            <div class="form-group"><label class="form-label">作用域</label>
-                <select class="form-select" id="cap-scope">
-                    <option value="WORKSPACE">工作区级 (Workspace)</option>
-                    <option value="TENANT">租户级 (Tenant)</option>
-                    <option value="GLOBAL">全域级 (Global)</option>
-                </select>
+            <div style="display:flex; gap:10px;">
+                <div class="form-group" style="flex:1">
+                    <label class="form-label">作用域</label>
+                    <select class="form-select" id="cap-scope">
+                        <option value="WORKSPACE">工作区级 (Workspace)</option>
+                        <option value="TENANT">租户级 (Tenant)</option>
+                        <option value="GLOBAL">全域级 (Global)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1">
+                    <label class="form-label">值类型</label>
+                    <select class="form-select" id="cap-type">
+                        <option value="BOOL">开关型 (On/Off)</option>
+                        <option value="INT">数值型 (Quota)</option>
+                    </select>
+                </div>
             </div>
             <div class="form-group"><label class="form-label">绑定底层 Feature</label><select class="form-select" id="cap-feat"></select></div>
             <div class="form-group">
@@ -556,7 +573,7 @@
     }
 
 
-    // ================== 1. DATA STORE (MEEGO EDITION V27) ==================
+    // ================== 1. DATA STORE (MEEGO EDITION V30 - QUANTIFIED) ==================
     
     const defaults = {
         products: [
@@ -578,28 +595,44 @@
             { id: 'feat_data_mig', name: 'Data Migration Service', owner: 'Ops' },
             { id: 'feat_custom_plugin', name: 'Custom Plugins', owner: 'Open API' }
         ],
+        // V30: Added 'type' (BOOL/INT)
         capabilities: [
-            { id: 'c_base_work', name: '基础工作台 (看板/列表)', scope: 'WORKSPACE', fid: 'feat_list', prods: ['p_meego_prj'] },
-            { id: 'c_gantt', name: '甘特图', scope: 'WORKSPACE', fid: 'feat_gantt', prods: ['p_meego_prj'] },
-            { id: 'c_sec_basic', name: '安全管理 (基础)', scope: 'TENANT', fid: 'feat_security', prods: ['p_meego_prj'] },
-            { id: 'c_api', name: 'API Access', scope: 'WORKSPACE', fid: null, prods: ['p_meego_prj'] },
-            { id: 'c_calc_field', name: '计算字段', scope: 'WORKSPACE', fid: 'feat_calc', prods: ['p_meego_prj'] },
-            { id: 'c_global_v', name: '全景视图', scope: 'TENANT', fid: 'feat_global_view', prods: ['p_meego_prj'] },
-            { id: 'c_cross_org', name: '企业互联', scope: 'TENANT', fid: 'feat_cross_org', prods: ['p_meego_prj'] },
-            { id: 'c_adv_perm', name: '高级权限', scope: 'WORKSPACE', fid: 'feat_adv_perm', prods: ['p_meego_prj'] },
-            { id: 'c_auto_500', name: '自动化规则 (500次)', scope: 'WORKSPACE', fid: 'feat_automation', prods: ['p_meego_prj'] },
-            { id: 'c_branding', name: '品牌定制', scope: 'TENANT', fid: 'feat_branding', prods: ['p_meego_prj'] },
-            { id: 'c_migrate', name: '数据迁移服务', scope: 'GLOBAL', fid: 'feat_data_mig', prods: ['p_meego_prj'] },
-            { id: 'c_plugins', name: '自定义插件', scope: 'WORKSPACE', fid: 'feat_custom_plugin', prods: ['p_meego_prj'] }
+            { id: 'c_base_work', name: '基础工作台 (看板/列表)', scope: 'WORKSPACE', fid: 'feat_list', prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_gantt', name: '甘特图', scope: 'WORKSPACE', fid: 'feat_gantt', prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_sec_basic', name: '安全管理 (基础)', scope: 'TENANT', fid: 'feat_security', prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_api', name: 'API Access', scope: 'WORKSPACE', fid: null, prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_calc_field', name: '计算字段', scope: 'WORKSPACE', fid: 'feat_calc', prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_global_v', name: '全景视图', scope: 'TENANT', fid: 'feat_global_view', prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_cross_org', name: '企业互联', scope: 'TENANT', fid: 'feat_cross_org', prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_adv_perm', name: '高级权限', scope: 'WORKSPACE', fid: 'feat_adv_perm', prods: ['p_meego_prj'], type: 'BOOL' },
+            // INT Type
+            { id: 'c_auto_rule', name: '自动化规则数/月', scope: 'WORKSPACE', fid: 'feat_automation', prods: ['p_meego_prj'], type: 'INT' },
+
+            { id: 'c_branding', name: '品牌定制', scope: 'TENANT', fid: 'feat_branding', prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_migrate', name: '数据迁移服务', scope: 'GLOBAL', fid: 'feat_data_mig', prods: ['p_meego_prj'], type: 'BOOL' },
+            { id: 'c_plugins', name: '自定义插件', scope: 'WORKSPACE', fid: 'feat_custom_plugin', prods: ['p_meego_prj'], type: 'BOOL' }
         ],
         rules: [
             { id: 'r1', level: 'COMMERCIAL', type: 'DEPEND', desc: '企业互联需基础安全', src: 'c_cross_org', tgt: 'c_sec_basic' }
         ],
+        // V30: ents is now an Object map { capId: val }
         skus: [
-            { id: 'sku_mp_std', pid: 'p_meego_prj', type: 'PLAN', name: 'Standard', desc: '适合小型团队快速上手', price: 29, billing: 'PER_USER_MO', level: 1, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api'] },
-            { id: 'sku_mp_prm', pid: 'p_meego_prj', type: 'PLAN', name: 'Premium', desc: '助力中型企业高效协作', price: 59, billing: 'PER_USER_MO', level: 2, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api', 'c_calc_field', 'c_global_v', 'c_cross_org', 'c_adv_perm', 'c_auto_500'] },
-            { id: 'sku_mp_ent', pid: 'p_meego_prj', type: 'PLAN', name: 'Enterprise', desc: '大型组织的旗舰之选', price: 0, billing: 'CUSTOM', level: 3, ents: ['c_base_work', 'c_gantt', 'c_sec_basic', 'c_api', 'c_calc_field', 'c_global_v', 'c_cross_org', 'c_adv_perm', 'c_auto_500', 'c_branding', 'c_migrate', 'c_plugins'] },
-            { id: 'sku_mp_auto_plus', pid: 'p_meego_prj', type: 'ADDON', name: 'Auto+ Pack', desc: '增加 5000 次自动化执行', price: 100, billing: 'FLAT_MO', ents: ['c_auto_500'] }
+            { 
+                id: 'sku_mp_std', pid: 'p_meego_prj', type: 'PLAN', name: 'Standard', desc: '适合小型团队快速上手', price: 29, billing: 'PER_USER_MO', level: 1, 
+                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_auto_rule': 100 } 
+            },
+            { 
+                id: 'sku_mp_prm', pid: 'p_meego_prj', type: 'PLAN', name: 'Premium', desc: '助力中型企业高效协作', price: 59, billing: 'PER_USER_MO', level: 2, 
+                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_calc_field': true, 'c_global_v': true, 'c_cross_org': true, 'c_adv_perm': true, 'c_auto_rule': 1000 } 
+            },
+            { 
+                id: 'sku_mp_ent', pid: 'p_meego_prj', type: 'PLAN', name: 'Enterprise', desc: '大型组织的旗舰之选', price: 0, billing: 'CUSTOM', level: 3, 
+                ents: { 'c_base_work': true, 'c_gantt': true, 'c_sec_basic': true, 'c_api': true, 'c_calc_field': true, 'c_global_v': true, 'c_cross_org': true, 'c_adv_perm': true, 'c_auto_rule': 10000, 'c_branding': true, 'c_migrate': true, 'c_plugins': true } 
+            },
+            { 
+                id: 'sku_mp_auto_plus', pid: 'p_meego_prj', type: 'ADDON', name: 'Auto+ Pack', desc: '增加 5000 次自动化执行', price: 100, billing: 'FLAT_MO', 
+                ents: { 'c_auto_rule': 5000 } 
+            }
         ],
         tenants: [
             { id: 't1', name: 'Li Auto', subs: [{ skuId: 'sku_mp_ent', seats: 2000, status: 'Active', end: '2026-01-01' }] },
@@ -610,9 +643,16 @@
     let products, features, capabilities, rules, skus, tenants;
 
     function initData() {
-        if(localStorage.getItem('saas_demo_v29')) {
-            const saved = JSON.parse(localStorage.getItem('saas_demo_v29'));
-            saved.capabilities.forEach(c => { if(!c.prods && c.prod) c.prods = [c.prod]; });
+        if(localStorage.getItem('saas_demo_v30')) {
+            const saved = JSON.parse(localStorage.getItem('saas_demo_v30'));
+            // V30 Migration: Ensure ents is object
+            saved.skus.forEach(s => {
+                if (Array.isArray(s.ents)) {
+                    const newEnts = {};
+                    s.ents.forEach(c => newEnts[c] = true);
+                    s.ents = newEnts;
+                }
+            });
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
         } else {
@@ -622,7 +662,7 @@
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v29', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v30', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -656,7 +696,15 @@
             try {
                 const imported = JSON.parse(e.target.result);
                 if(imported.products && imported.skus) {
-                    localStorage.setItem('saas_demo_v29', JSON.stringify(imported));
+                    // Migration logic if needed on import
+                    imported.skus.forEach(s => {
+                        if(Array.isArray(s.ents)) {
+                            const newEnts = {};
+                            s.ents.forEach(c => newEnts[c] = true);
+                            s.ents = newEnts;
+                        }
+                    });
+                    localStorage.setItem('saas_demo_v30', JSON.stringify(imported));
                     location.reload();
                 } else {
                     alert('Invalid configuration file format');
@@ -671,7 +719,7 @@
     initData();
 
     // ================== 2. STATE & ROUTING ==================
-    let currView = 'features';
+    let currView = 'products';
     let activeProdId = null;
     let editingId = null;
     let editSubRef = null;
@@ -745,17 +793,19 @@
     function renderCaps(c, h, ha) {
         h.innerText = '商业能力 (Capabilities)';
         ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('cap')">+ 定义 Capability</button>`;
-        c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>作用域</th><th>绑定Feature</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
+        c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>作用域</th><th>类型</th><th>绑定Feature</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
             ${capabilities.map(cap => {
                 const f = features.find(x => x.id === cap.fid);
                 const prodBadges = (cap.prods || []).map(pid => {
                     const p = products.find(x=>x.id===pid);
                     return p ? `<span class="tag tag-green">${p.code}</span>` : '';
                 }).join(' ');
+                const typeTag = cap.type === 'INT' ? '<span class="tag tag-purple">123 (Int)</span>' : '<span class="tag tag-gray">Bool</span>';
                 
                 return `<tr>
                     <td><b>${cap.name}</b></td>
                     <td><span class="tag ${cap.scope==='TENANT'?'tag-blue':'tag-orange'}">${cap.scope}</span></td>
+                    <td>${typeTag}</td>
                     <td>${f ? f.name : '-'}</td>
                     <td>${prodBadges}</td>
                     <td><button class="btn btn-icon" onclick="openModal('cap','${cap.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('cap','${cap.id}')">🗑️</button></td>
@@ -839,10 +889,20 @@
                 </thead>
                 <tbody>
                     ${prodCaps.map(cap => `<tr>
-                        <td><b>${cap.name}</b><br><span style="font-size:11px; color:#999">${cap.scope}</span></td>
+                        <td>
+                            <b>${cap.name}</b>
+                            <br><span style="font-size:11px; color:#999">${cap.scope}</span>
+                            ${cap.type === 'INT' ? '<span style="font-size:11px; color:#7e22ce; margin-left:4px;">(数值)</span>' : ''}
+                        </td>
                         ${plans.map(p => {
-                            const checked = p.ents.includes(cap.id);
-                            return `<td class="matrix-cell" onclick="toggleEnt('${p.id}','${cap.id}')"><div class="check-box ${checked?'checked':''}"></div></td>`
+                            const val = p.ents[cap.id];
+                            let cellContent = '';
+                            if (cap.type === 'INT') {
+                                cellContent = val ? `<div class="qty-badge">${val}</div>` : `<div class="qty-badge empty">-</div>`;
+                            } else {
+                                cellContent = `<div class="check-box ${val ? 'checked' : ''}"></div>`;
+                            }
+                            return `<td class="matrix-cell" onclick="toggleEnt('${p.id}','${cap.id}', '${cap.type}')">${cellContent}</td>`;
                         }).join('')}
                     </tr>`).join('')}
                 </tbody>
@@ -858,7 +918,7 @@
                     <div class="addon-card-actions"><button class="btn btn-icon" onclick="openModal('sku','${a.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('sku','${a.id}')">🗑️</button></div>
                     <div style="font-size:13px; color:#64748b; margin-top:4px;">${a.desc || '暂无描述'}</div>
                     <div class="addon-price">${getPriceDisplay(a)}</div>
-                    <div style="font-size:12px; color:#94a3b8; margin-top:8px;">包含 ${a.ents.length} 项能力</div>
+                    <div style="font-size:12px; color:#94a3b8; margin-top:8px;">包含 ${Object.keys(a.ents).length} 项能力</div>
                     ${deps.map(d => `<div class="rel-badge depend" style="margin-top:8px;">🔗 依赖: ${resolveName(d.tgt, 'COMMERCIAL')}</div>`).join('')}
                 </div>
                 <div style="margin-top:auto; display:flex; justify-content:space-between; border-top:1px solid #f1f5f9; padding-top:10px;">
@@ -933,10 +993,13 @@
 
     function checkMutex(sku, capId) {
         const capToAdd = capabilities.find(c=>c.id===capId);
-        for(const exist of sku.ents) {
+        // Check existing caps (keys of ents object)
+        for(const exist of Object.keys(sku.ents)) {
+            // Direct capability conflict
             const conflict = rules.find(r => r.type==='MUTEX' && r.level==='TECHNICAL' && 
                 ((r.src===capId && r.tgt===exist) || (r.src===exist && r.tgt===capId))
             );
+            // Feature level conflict
             if (!conflict && capToAdd.fid) {
                 const existCap = capabilities.find(c=>c.id===exist);
                 if (existCap.fid) {
@@ -951,19 +1014,35 @@
         return null;
     }
 
-    function toggleEnt(sid, cid) {
+    function toggleEnt(sid, cid, type) {
         const s = skus.find(x=>x.id===sid);
-        if(!s.ents.includes(cid)) {
+        const currentVal = s.ents[cid];
+        
+        if (!currentVal) {
+            // Trying to add
             const check = checkMutex(s, cid);
             if(check && check.conflict) return alert(`互斥拦截: ${check.msg}`);
-            s.ents.push(cid);
+            
+            if (type === 'INT') {
+                const val = prompt("请输入配额数量 (数字):", "100");
+                if(val && !isNaN(val)) s.ents[cid] = parseInt(val);
+            } else {
+                s.ents[cid] = true;
+            }
         } else {
-            s.ents = s.ents.filter(x=>x!==cid);
+            // Trying to remove or edit
+             if (type === 'INT') {
+                 const val = prompt("修改配额数量 (输入0删除):", currentVal);
+                 if(val === '0' || val === null) delete s.ents[cid];
+                 else if (!isNaN(val)) s.ents[cid] = parseInt(val);
+             } else {
+                 delete s.ents[cid];
+             }
         }
         saveData(); render();
     }
 
-    // ================== 5. MODAL LOGIC ==================
+    // ================== 5. MODAL LOGIC (FULL EDIT SUPPORT) ==================
 
     function openModal(type, id = null) {
         document.querySelectorAll('.mask').forEach(e=>e.style.display='none');
@@ -972,12 +1051,17 @@
         const isEdit = !!id;
         
         if(type === 'cap') {
-            const item = id ? capabilities.find(x=>x.id===id) : {name:'', scope:'WORKSPACE', fid:'', prods:[]};
+            const item = id ? capabilities.find(x=>x.id===id) : {name:'', scope:'WORKSPACE', fid:'', prods:[], type: 'BOOL'};
             document.getElementById('cap-modal-title').innerText = isEdit ? '编辑 Capability' : '定义 Capability';
             document.getElementById('cap-name').value = item.name;
             document.getElementById('cap-scope').value = item.scope;
             document.getElementById('cap-feat').innerHTML = '<option value="">(None)</option>' + features.map(f=>`<option value="${f.id}" ${f.id===item.fid?'selected':''}>${f.name}</option>`).join('');
             
+            // V30: Type Select
+            const typeSel = document.getElementById('cap-type');
+            if (typeSel) typeSel.value = item.type || 'BOOL';
+
+            // Generate checkboxes for products
             const prodContainer = document.getElementById('cap-prods-container');
             prodContainer.innerHTML = products.map(p => {
                 const checked = (item.prods || []).includes(p.id) ? 'checked' : '';
@@ -1079,14 +1163,15 @@
         const name = document.getElementById('cap-name').value;
         const scope = document.getElementById('cap-scope').value;
         const fid = document.getElementById('cap-feat').value;
+        const type = document.getElementById('cap-type').value;
         const checkboxes = document.querySelectorAll('#cap-prods-container input[type="checkbox"]:checked');
         const prods = Array.from(checkboxes).map(cb => cb.value);
         
         if(name) {
             if(editingId) {
-                const c = capabilities.find(x=>x.id===editingId); c.name=name; c.scope=scope; c.fid=fid; c.prods=prods;
+                const c = capabilities.find(x=>x.id===editingId); c.name=name; c.scope=scope; c.fid=fid; c.prods=prods; c.type=type;
             } else {
-                capabilities.push({id:'c'+Date.now(), name, scope, fid, prods});
+                capabilities.push({id:'c'+Date.now(), name, scope, fid, prods, type});
             }
             saveData(); closeModals(); render();
         }
@@ -1132,7 +1217,7 @@
                 const s = skus.find(x=>x.id===editingId); 
                 s.name=name; s.desc=desc; s.price=price; s.billing=billing; s.level=level;
             } else {
-                skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, desc, price, billing, level, ents:[]});
+                skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, desc, price, billing, level, ents:{}});
             }
             saveData(); closeModals(); render();
         }
@@ -1190,24 +1275,37 @@
         document.getElementById('drawer-title').innerText = `配置 ${addon.name}`;
         
         list.innerHTML = prodCaps.map(c => {
-            const has = addon.ents.includes(c.id);
+            const has = addon.ents[c.id];
+            let control = '';
+            if (c.type === 'INT') {
+                control = `<div style="display:flex;align-items:center;gap:4px;"><input type="number" style="width:60px;padding:4px;border:1px solid #ccc;border-radius:4px;" value="${has || ''}" onchange="toggleAddonEnt('${c.id}', this.value, 'INT')" placeholder="-"></div>`;
+            } else {
+                control = `<div onclick="toggleAddonEnt('${c.id}', null, 'BOOL')" style="cursor:pointer"><div class="check-box ${has?'checked':''}"></div></div>`;
+            }
+
             return `<div style="padding:12px 20px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
-                <div><div style="font-weight:500">${c.name}</div><div style="font-size:11px; color:#999">${c.scope}</div></div>
-                <div onclick="toggleAddonEnt('${c.id}')" style="cursor:pointer"><div class="check-box ${has?'checked':''}"></div></div>
+                <div><div style="font-weight:500">${c.name}</div><div style="font-size:11px; color:#999">${c.scope} ${c.type==='INT'?'(数量)':''}</div></div>
+                ${control}
             </div>`
         }).join('');
         
         document.getElementById('drawer-overlay').style.display='block';
         document.getElementById('drawer').classList.add('open');
     }
-    function toggleAddonEnt(cid) {
+    function toggleAddonEnt(cid, val, type) {
         const s = skus.find(x=>x.id===drawerAddonId);
-        if(!s.ents.includes(cid)) {
-            const check = checkMutex(s, cid);
-            if(check && check.conflict) return alert(check.msg);
-            s.ents.push(cid);
-        } else s.ents = s.ents.filter(x=>x!==cid);
-        saveData(); openDrawer(drawerAddonId);
+        if (type === 'INT') {
+            if (val && val > 0) s.ents[cid] = parseInt(val);
+            else delete s.ents[cid];
+        } else {
+             if(!s.ents[cid]) {
+                const check = checkMutex(s, cid);
+                if(check && check.conflict) return alert(check.msg);
+                s.ents[cid] = true;
+            } else delete s.ents[cid];
+        }
+        saveData(); 
+        // Don't redraw drawer entirely to keep focus for inputs, maybe just update state
     }
     function closeDrawer() {
         document.getElementById('drawer').classList.remove('open');
