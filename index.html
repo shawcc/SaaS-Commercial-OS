@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V37 - Concept Guide</title>
+    <title>SaaS Commercial OS V38 - Concept Guide</title>
     <style>
         /* ================= 样式保持 ================= */
         :root {
@@ -613,7 +613,8 @@
     }
 
 
-    // ================== 1. DATA STORE ==================
+    // ================== 1. DATA STORE (V36: SAAS_CONFIG 3 JSON INJECTED) ==================
+    // Note: Hardcoded the provided JSON data as defaults
     
     const defaults = {
   "products": [
@@ -1451,8 +1452,8 @@
     }
 
     function initData() {
-        if(localStorage.getItem('saas_demo_v37')) {
-            let saved = JSON.parse(localStorage.getItem('saas_demo_v37'));
+        if(localStorage.getItem('saas_demo_v36')) {
+            let saved = JSON.parse(localStorage.getItem('saas_demo_v36'));
             saved = migrateData(saved);
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
@@ -1463,7 +1464,7 @@
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v37', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v36', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -1498,7 +1499,7 @@
                 let imported = JSON.parse(e.target.result);
                 if(imported.products && imported.skus) {
                     imported = migrateData(imported); // Run migration on import
-                    localStorage.setItem('saas_demo_v37', JSON.stringify(imported));
+                    localStorage.setItem('saas_demo_v36', JSON.stringify(imported));
                     location.reload();
                 } else {
                     alert('Invalid configuration file format');
@@ -1612,7 +1613,7 @@
                     <ul style="padding-left:20px; color:#475569; font-size:14px;">
                         <li><span class="tag tag-orange">WORKSPACE</span> <strong>工作区级</strong>：仅在特定的项目/空间内生效（如：甘特图、需求管理）。</li>
                         <li><span class="tag tag-blue">TENANT</span> <strong>租户级</strong>：购买后全公司/全租户所有成员可用（如：SSO、企业品牌定制）。</li>
-                        <li><span class="tag tag-purple">GLOBAL</span> <strong>全域级</strong>：跨越租户的最高级权益，通常用于平台级管控（如：数据迁移服务）。</li>
+                        <li><span class="tag tag-purple">GLOBAL</span> <strong>全域级 (跨工作区)</strong>：购买了某个权益后，租户下的**所有工作区**都能使用该功能（无需逐个分配）。</li>
                     </ul>
                 </div>
             </div>
