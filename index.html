@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V35 - Multi-Product Growth</title>
+    <title>SaaS Commercial OS V36 - Customer Growth</title>
     <style>
-        /* ================= 样式保持 V28/V34 ================= */
+        /* ================= 样式保持 V28/V34/V35 ================= */
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
@@ -460,7 +460,7 @@
     </div>
 </div>
 
-<!-- 8. Add Subscription to Existing Tenant Modal -->
+<!-- 8. Add Subscription to Existing Tenant Modal (V35 NEW) -->
 <div class="mask" id="modal-add-sub-to-tenant">
     <div class="modal">
         <div class="modal-head"><span>增购产品</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -473,6 +473,7 @@
         <div class="modal-foot"><button class="btn btn-primary" onclick="saveAddSubToTenant()">确认增购</button></div>
     </div>
 </div>
+
 
 <!-- Add-on Drawer -->
 <div class="drawer" id="drawer">
@@ -597,7 +598,8 @@
     }
 
 
-    // ================== 1. DATA STORE ==================
+    // ================== 1. DATA STORE (MEEGO EDITION V36) ==================
+    // Updated with provided configuration
     
     const defaults = {
   "products": [
@@ -1435,8 +1437,8 @@
     }
 
     function initData() {
-        if(localStorage.getItem('saas_demo_v34')) {
-            let saved = JSON.parse(localStorage.getItem('saas_demo_v34'));
+        if(localStorage.getItem('saas_demo_v36')) {
+            let saved = JSON.parse(localStorage.getItem('saas_demo_v36'));
             saved = migrateData(saved);
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
@@ -1447,7 +1449,7 @@
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v34', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v36', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -1482,7 +1484,7 @@
                 let imported = JSON.parse(e.target.result);
                 if(imported.products && imported.skus) {
                     imported = migrateData(imported); // Run migration on import
-                    localStorage.setItem('saas_demo_v34', JSON.stringify(imported));
+                    localStorage.setItem('saas_demo_v36', JSON.stringify(imported));
                     location.reload();
                 } else {
                     alert('Invalid configuration file format');
@@ -2156,46 +2158,6 @@
             saveData(); closeModals(); render();
         }
     }
-
-    // --- NEW: Add Subscription to Existing Tenant ---
-    function openAddSubModal(tid) {
-        const t = tenants.find(x => x.id === tid);
-        editingId = tid; // Use editingId to store tenant ID
-        document.getElementById('add-sub-tenant-name').value = t.name;
-        
-        // Populate Products
-        const pSel = document.getElementById('add-sub-prod');
-        pSel.innerHTML = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-        updateAddSubSkuOptions();
-        
-        openModal('add-sub-to-tenant');
-    }
-
-    function updateAddSubSkuOptions() {
-        const pid = document.getElementById('add-sub-prod').value;
-        const sSel = document.getElementById('add-sub-sku');
-        const availSkus = skus.filter(s => s.pid === pid && s.type === 'PLAN'); // Only allow adding Plans initially
-        sSel.innerHTML = availSkus.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-    }
-
-    function saveAddSubToTenant() {
-        const tid = editingId;
-        const skuId = document.getElementById('add-sub-sku').value;
-        const seats = document.getElementById('add-sub-seats').value;
-        
-        if (tid && skuId) {
-            const t = tenants.find(x => x.id === tid);
-            t.subs.push({
-                skuId: skuId,
-                seats: seats || 10,
-                status: 'Active',
-                end: '2025-12-31' // Default one year from now logic could go here
-            });
-            saveData();
-            closeModals();
-            render();
-        }
-    }
     
     // Addon Drawer
     function openDrawer(sid) {
@@ -2242,6 +2204,46 @@
         document.getElementById('drawer').classList.remove('open');
         setTimeout(()=>document.getElementById('drawer-overlay').style.display='none',300);
         render();
+    }
+
+    // --- NEW: Add Subscription to Existing Tenant ---
+    function openAddSubModal(tid) {
+        const t = tenants.find(x => x.id === tid);
+        editingId = tid; // Use editingId to store tenant ID
+        document.getElementById('add-sub-tenant-name').value = t.name;
+        
+        // Populate Products
+        const pSel = document.getElementById('add-sub-prod');
+        pSel.innerHTML = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        updateAddSubSkuOptions();
+        
+        openModal('add-sub-to-tenant');
+    }
+
+    function updateAddSubSkuOptions() {
+        const pid = document.getElementById('add-sub-prod').value;
+        const sSel = document.getElementById('add-sub-sku');
+        const availSkus = skus.filter(s => s.pid === pid && s.type === 'PLAN'); // Only allow adding Plans initially
+        sSel.innerHTML = availSkus.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    function saveAddSubToTenant() {
+        const tid = editingId;
+        const skuId = document.getElementById('add-sub-sku').value;
+        const seats = document.getElementById('add-sub-seats').value;
+        
+        if (tid && skuId) {
+            const t = tenants.find(x => x.id === tid);
+            t.subs.push({
+                skuId: skuId,
+                seats: seats || 10,
+                status: 'Active',
+                end: '2025-12-31' // Default one year from now logic could go here
+            });
+            saveData();
+            closeModals();
+            render();
+        }
     }
 
     // Init
