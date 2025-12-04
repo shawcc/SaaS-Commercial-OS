@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V38 - Concept Guide</title>
+    <title>SaaS Commercial OS V37 - Concept Guide</title>
     <style>
-        /* ================= 样式保持 ================= */
+        /* ================= 样式保持 V36 ================= */
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
@@ -111,15 +111,22 @@
         .tag-gray { background: #f3f4f6; color: #4b5563; }
 
         /* --- Guide Styles (NEW) --- */
+        .guide-hero { background: white; border-radius: 8px; padding: 32px; margin-bottom: 24px; border: 1px solid var(--border); }
         .guide-section { margin-bottom: 40px; }
         .guide-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-        .guide-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+        .guide-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; position: relative; }
         .guide-text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 12px; }
-        .guide-diagram { display: flex; gap: 20px; margin: 20px 0; overflow-x: auto; padding-bottom: 10px; }
-        .diagram-node { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; min-width: 180px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .diagram-node strong { display: block; color: var(--primary); margin-bottom: 4px; font-size: 15px; }
-        .diagram-node span { font-size: 12px; color: #64748b; }
-        .diagram-arrow { display: flex; align-items: center; color: #94a3b8; font-size: 20px; }
+        
+        .guide-diagram { display: flex; gap: 16px; margin: 24px 0; overflow-x: auto; padding: 8px 0; align-items: stretch; }
+        .diagram-step { flex: 1; background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; min-width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .diagram-step strong { display: block; color: var(--primary); margin-bottom: 6px; font-size: 15px; }
+        .diagram-step span { font-size: 12px; color: #64748b; line-height: 1.4; }
+        .diagram-arrow { display: flex; align-items: center; color: #94a3b8; font-size: 24px; font-weight: bold; }
+        
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .concept-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+        .concept-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .concept-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; font-weight: 600; }
 
         /* --- Packaging Views --- */
         .prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
@@ -284,7 +291,6 @@
                 <input type="password" class="form-input" id="settings-api-key" placeholder="AIzaSy...">
                 <div style="font-size:12px; color:#94a3b8; margin-top:4px;">
                     您的 Key 仅存储在本地浏览器中，不会上传到服务器。
-                    <br>如果不填，AI 功能将使用模拟数据（Mock Mode）。
                 </div>
             </div>
         </div>
@@ -408,7 +414,7 @@
     </div>
 </div>
 
-<!-- 5. SKU Modal (V33 Update: Multi-Pricing) -->
+<!-- 5. SKU Modal -->
 <div class="mask" id="modal-sku">
     <div class="modal">
         <div class="modal-head"><span id="sku-modal-title">新建 SKU</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
@@ -424,10 +430,8 @@
             </div>
             
             <div class="form-group">
-                <label class="form-label">多重定价 (Pricing Schemes)</label>
-                <div id="sku-pricing-container">
-                    <!-- Dynamic rows -->
-                </div>
+                <label class="form-label">多重定价 (Pricing)</label>
+                <div id="sku-pricing-container"></div>
                 <button class="btn btn-outline btn-sm" onclick="addPricingRow()" style="margin-top:8px;">+ 添加价格方案</button>
             </div>
 
@@ -441,7 +445,6 @@
             <div class="form-group" id="sku-level-group">
                 <label class="form-label">版本级别 (Level)</label>
                 <input type="number" class="form-input" id="sku-level" placeholder="1 (Low) -> 10 (High)" value="1">
-                <div style="font-size:11px; color:#94a3b8; margin-top:4px;">用于矩阵从左到右排序，级别越高功能越多</div>
             </div>
         </div>
         <div class="modal-foot"><button class="btn btn-primary" onclick="saveSku()">保存</button></div>
@@ -613,614 +616,75 @@
     }
 
 
-    // ================== 1. DATA STORE (V36: SAAS_CONFIG 3 JSON INJECTED) ==================
-    // Note: Hardcoded the provided JSON data as defaults
+    // ================== 1. DATA STORE (V37: LATEST CONFIG) ==================
+    // Data from saas_config (3).json + V36 logic
     
     const defaults = {
   "products": [
-    {
-      "id": "p_meego_prj",
-      "name": "Meego Project",
-      "code": "PRJ",
-      "icon": "🌟"
-    },
-    {
-      "id": "p_meego_ipd",
-      "name": "Meego IPD",
-      "code": "IPD",
-      "icon": "⚙"
-    },
-    {
-      "id": "p_meego_ltc",
-      "name": "Meego LTC",
-      "code": "LTC",
-      "icon": "💰"
-    },
-    {
-      "id": "p_basic",
-      "name": "Basic Platform",
-      "code": "BSC",
-      "icon": "B"
-    },
-    {
-      "id": "p1764591867940",
-      "name": "Meego AI",
-      "code": "AI",
-      "icon": "✨"
-    }
+    { "id": "p_meego_prj", "name": "Meego Project", "code": "PRJ", "icon": "🌟" },
+    { "id": "p_meego_ipd", "name": "Meego IPD", "code": "IPD", "icon": "⚙" },
+    { "id": "p_meego_ltc", "name": "Meego LTC", "code": "LTC", "icon": "💰" },
+    { "id": "p_basic", "name": "Basic Platform", "code": "BSC", "icon": "B" },
+    { "id": "p1764591867940", "name": "Meego AI", "code": "AI", "icon": "✨" }
   ],
   "features": [
-    {
-      "id": "feat_list",
-      "name": "List/Board Views",
-      "owner": "Core Team"
-    },
-    {
-      "id": "feat_gantt",
-      "name": "Gantt Chart",
-      "owner": "Core Team"
-    },
-    {
-      "id": "feat_calc",
-      "name": "Calculated Fields",
-      "owner": "Platform"
-    },
-    {
-      "id": "feat_global_view",
-      "name": "Global View",
-      "owner": "Platform"
-    },
-    {
-      "id": "feat_cross_org",
-      "name": "Enterprise Interconnect",
-      "owner": "Collaboration"
-    },
-    {
-      "id": "feat_adv_perm",
-      "name": "Advanced Permissions",
-      "owner": "Identity"
-    },
-    {
-      "id": "feat_security",
-      "name": "Security Mgmt",
-      "owner": "Sec Team"
-    },
-    {
-      "id": "feat_automation",
-      "name": "Automation Rules",
-      "owner": "Automation"
-    },
-    {
-      "id": "feat_branding",
-      "name": "Brand Customization",
-      "owner": "Frontend"
-    },
-    {
-      "id": "feat_data_mig",
-      "name": "Data Migration Service",
-      "owner": "Ops"
-    },
-    {
-      "id": "feat_custom_plugin",
-      "name": "Custom Plugins",
-      "owner": "Open API"
-    }
+    { "id": "feat_list", "name": "List/Board Views", "owner": "Core Team" },
+    { "id": "feat_gantt", "name": "Gantt Chart", "owner": "Core Team" },
+    { "id": "feat_calc", "name": "Calculated Fields", "owner": "Platform" },
+    { "id": "feat_global_view", "name": "Global View", "owner": "Platform" },
+    { "id": "feat_cross_org", "name": "Enterprise Interconnect", "owner": "Collaboration" },
+    { "id": "feat_adv_perm", "name": "Advanced Permissions", "owner": "Identity" },
+    { "id": "feat_security", "name": "Security Mgmt", "owner": "Sec Team" },
+    { "id": "feat_automation", "name": "Automation Rules", "owner": "Automation" },
+    { "id": "feat_branding", "name": "Brand Customization", "owner": "Frontend" },
+    { "id": "feat_data_mig", "name": "Data Migration Service", "owner": "Ops" },
+    { "id": "feat_custom_plugin", "name": "Custom Plugins", "owner": "Open API" }
   ],
   "capabilities": [
-    {
-      "id": "c_base_work",
-      "name": "数据导入导出",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "核心功能",
-        "p_meego_ipd": "核心功能",
-        "p_meego_ltc": "核心功能"
-      }
-    },
-    {
-      "id": "c_gantt",
-      "name": "附件能力",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "核心功能",
-        "p_meego_ipd": "核心功能",
-        "p_meego_ltc": "核心功能"
-      }
-    },
-    {
-      "id": "c_sec_basic",
-      "name": "排期默认值",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "核心功能"
-      }
-    },
-    {
-      "id": "c_api",
-      "name": "计算字段",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "高级资源",
-        "p_meego_ipd": "高级资源",
-        "p_meego_ltc": "高级资源"
-      }
-    },
-    {
-      "id": "c_calc_field",
-      "name": "视图控件",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "高级资源",
-        "p_meego_ipd": "高级资源",
-        "p_meego_ltc": "高级资源"
-      }
-    },
-    {
-      "id": "c_global_v",
-      "name": "关联工作项信息",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "高级资源",
-        "p_meego_ipd": "高级资源",
-        "p_meego_ltc": "高级资源"
-      }
-    },
-    {
-      "id": "c_cross_org",
-      "name": "树形视图",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "视图与报告",
-        "p_meego_ipd": "视图与报告",
-        "p_meego_ltc": "视图与报告"
-      }
-    },
-    {
-      "id": "c_adv_perm",
-      "name": "度量视图",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "视图与报告",
-        "p_meego_ipd": "视图与报告",
-        "p_meego_ltc": "视图与报告"
-      }
-    },
-    {
-      "id": "c_auto_rule",
-      "name": "全景视图",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "视图与报告",
-        "p_meego_ipd": "视图与报告",
-        "p_meego_ltc": "视图与报告"
-      }
-    },
-    {
-      "id": "c_branding",
-      "name": "人员甘特图（跨空间）",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "视图与报告",
-        "p_meego_ipd": "视图与报告",
-        "p_meego_ltc": "视图与报告"
-      }
-    },
-    {
-      "id": "c_migrate",
-      "name": "度量计算字段",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "视图与报告",
-        "p_meego_ipd": "视图与报告",
-        "p_meego_ltc": "视图与报告"
-      }
-    },
-    {
-      "id": "c_plugins",
-      "name": "自定义用户组",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "prods": [
-        "p_meego_prj"
-      ],
-      "type": "BOOL",
-      "categoryMap": {
-        "p_meego_prj": "管理与控制",
-        "p_meego_ipd": "管理与控制",
-        "p_meego_ltc": "管理与控制"
-      }
-    },
-    {
-      "id": "c1764582876851",
-      "name": "自定义团队",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "管理与控制",
-        "p_meego_ipd": "管理与控制",
-        "p_meego_ltc": "管理与控制"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764582901677",
-      "name": "席位分组管理",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "管理与控制",
-        "p_meego_ipd": "管理与控制",
-        "p_meego_ltc": "管理与控制"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764582937003",
-      "name": "页面水印",
-      "scope": "TENANT",
-      "fid": "",
-      "categoryMap": {
-        "p_basic": "管理与控制"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764582972083",
-      "name": "应用飞书访问策略管控",
-      "scope": "TENANT",
-      "fid": "",
-      "categoryMap": {
-        "p_basic": "管理与控制"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764582992964",
-      "name": "复合子段子字段查看权限",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "管理与控制",
-        "p_meego_ipd": "管理与控制",
-        "p_meego_ltc": "管理与控制"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764588578413",
-      "name": "高级多语言支持",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764588599288",
-      "name": "空间基准时区",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764588617982",
-      "name": "企业互联",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764588662369",
-      "name": "企业日历",
-      "scope": "GLOBAL",
-      "fid": "",
-      "categoryMap": {
-        "p_basic": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764588683317",
-      "name": "工作项高级配置（层级管理）",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589647152",
-      "name": "父子关系",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589677318",
-      "name": "节点/任务依赖关系",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589701829",
-      "name": "节点自定义按钮",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589717409",
-      "name": "工作项资源库",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589745892",
-      "name": "空间关联/关系管理/跨空间授权",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "工作协同",
-        "p_meego_ipd": "工作协同",
-        "p_meego_ltc": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589794115",
-      "name": "WBS计划表/泳道图/插件（IPD评审&文档创建）等",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "进阶管理",
-        "p_meego_ipd": "进阶管理"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589829873",
-      "name": "插件市场",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "集成与开放能力",
-        "p_meego_ipd": "集成与开放能力",
-        "p_meego_ltc": "集成与开放能力"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589844181",
-      "name": "企业自建插件",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "集成与开放能力",
-        "p_meego_ipd": "集成与开放能力",
-        "p_meego_ltc": "集成与开放能力"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589860459",
-      "name": "标准API",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "集成与开放能力",
-        "p_meego_ipd": "集成与开放能力",
-        "p_meego_ltc": "集成与开放能力"
-      },
-      "type": "INT"
-    },
-    {
-      "id": "c1764589876840",
-      "name": "高级API",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "集成与开放能力",
-        "p_meego_ipd": "集成与开放能力",
-        "p_meego_ltc": "集成与开放能力"
-      },
-      "type": "INT"
-    },
-    {
-      "id": "c1764589898569",
-      "name": "Webhook",
-      "scope": "WORKSPACE",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "集成与开放能力",
-        "p_meego_ipd": "集成与开放能力",
-        "p_meego_ltc": "集成与开放能力"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589927025",
-      "name": "企业模板市场",
-      "scope": "TENANT",
-      "fid": "",
-      "categoryMap": {
-        "p_meego_prj": "集成与开放能力",
-        "p_meego_ipd": "集成与开放能力",
-        "p_meego_ltc": "集成与开放能力"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589965561",
-      "name": "数据报表",
-      "scope": "TENANT",
-      "fid": "",
-      "categoryMap": {
-        "p_basic": "进阶管理"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764589984325",
-      "name": "跨境互通",
-      "scope": "TENANT",
-      "fid": "",
-      "categoryMap": {
-        "p_basic": "工作协同"
-      },
-      "type": "BOOL"
-    },
-    {
-      "id": "c1764590014700",
-      "name": "IP白名单",
-      "scope": "TENANT",
-      "fid": "",
-      "categoryMap": {
-        "p_basic": "管理与控制"
-      },
-      "type": "BOOL"
-    }
+    { "id": "c_base_work", "name": "数据导入导出", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "核心功能", "p_meego_ipd": "核心功能", "p_meego_ltc": "核心功能" } },
+    { "id": "c_gantt", "name": "附件能力", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "核心功能", "p_meego_ipd": "核心功能", "p_meego_ltc": "核心功能" } },
+    { "id": "c_sec_basic", "name": "排期默认值", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "核心功能" } },
+    { "id": "c_api", "name": "计算字段", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "高级资源", "p_meego_ipd": "高级资源", "p_meego_ltc": "高级资源" } },
+    { "id": "c_calc_field", "name": "视图控件", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "高级资源", "p_meego_ipd": "高级资源", "p_meego_ltc": "高级资源" } },
+    { "id": "c_global_v", "name": "关联工作项信息", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "高级资源", "p_meego_ipd": "高级资源", "p_meego_ltc": "高级资源" } },
+    { "id": "c_cross_org", "name": "树形视图", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "视图与报告", "p_meego_ipd": "视图与报告", "p_meego_ltc": "视图与报告" } },
+    { "id": "c_adv_perm", "name": "度量视图", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "视图与报告", "p_meego_ipd": "视图与报告", "p_meego_ltc": "视图与报告" } },
+    { "id": "c_auto_rule", "name": "全景视图", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "视图与报告", "p_meego_ipd": "视图与报告", "p_meego_ltc": "视图与报告" } },
+    { "id": "c_branding", "name": "人员甘特图（跨空间）", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "视图与报告", "p_meego_ipd": "视图与报告", "p_meego_ltc": "视图与报告" } },
+    { "id": "c_migrate", "name": "度量计算字段", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "视图与报告", "p_meego_ipd": "视图与报告", "p_meego_ltc": "视图与报告" } },
+    { "id": "c_plugins", "name": "自定义用户组", "scope": "WORKSPACE", "fid": "", "prods": ["p_meego_prj"], "type": "BOOL", "categoryMap": { "p_meego_prj": "管理与控制", "p_meego_ipd": "管理与控制", "p_meego_ltc": "管理与控制" } },
+    { "id": "c1764582876851", "name": "自定义团队", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "管理与控制", "p_meego_ipd": "管理与控制", "p_meego_ltc": "管理与控制" }, "type": "BOOL" },
+    { "id": "c1764582901677", "name": "席位分组管理", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "管理与控制", "p_meego_ipd": "管理与控制", "p_meego_ltc": "管理与控制" }, "type": "BOOL" },
+    { "id": "c1764582937003", "name": "页面水印", "scope": "TENANT", "fid": "", "categoryMap": { "p_basic": "管理与控制" }, "type": "BOOL" },
+    { "id": "c1764582972083", "name": "应用飞书访问策略管控", "scope": "TENANT", "fid": "", "categoryMap": { "p_basic": "管理与控制" }, "type": "BOOL" },
+    { "id": "c1764582992964", "name": "复合子段子字段查看权限", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "管理与控制", "p_meego_ipd": "管理与控制", "p_meego_ltc": "管理与控制" }, "type": "BOOL" },
+    { "id": "c1764588578413", "name": "高级多语言支持", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764588599288", "name": "空间基准时区", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764588617982", "name": "企业互联", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764588662369", "name": "企业日历", "scope": "GLOBAL", "fid": "", "categoryMap": { "p_basic": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764588683317", "name": "工作项高级配置（层级管理）", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764589647152", "name": "父子关系", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764589677318", "name": "节点/任务依赖关系", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764589701829", "name": "节点自定义按钮", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764589717409", "name": "工作项资源库", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764589745892", "name": "空间关联/关系管理/跨空间授权", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764589794115", "name": "WBS计划表/泳道图/插件（IPD评审&文档创建）等", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "进阶管理", "p_meego_ipd": "进阶管理" }, "type": "BOOL" },
+    { "id": "c1764589829873", "name": "插件市场", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "集成与开放能力", "p_meego_ipd": "集成与开放能力", "p_meego_ltc": "集成与开放能力" }, "type": "BOOL" },
+    { "id": "c1764589844181", "name": "企业自建插件", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "集成与开放能力", "p_meego_ipd": "集成与开放能力", "p_meego_ltc": "集成与开放能力" }, "type": "BOOL" },
+    { "id": "c1764589860459", "name": "标准API", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "集成与开放能力", "p_meego_ipd": "集成与开放能力", "p_meego_ltc": "集成与开放能力" }, "type": "INT" },
+    { "id": "c1764589876840", "name": "高级API", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "集成与开放能力", "p_meego_ipd": "集成与开放能力", "p_meego_ltc": "集成与开放能力" }, "type": "INT" },
+    { "id": "c1764589898569", "name": "Webhook", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "集成与开放能力", "p_meego_ipd": "集成与开放能力", "p_meego_ltc": "集成与开放能力" }, "type": "BOOL" },
+    { "id": "c1764589927025", "name": "企业模板市场", "scope": "TENANT", "fid": "", "categoryMap": { "p_meego_prj": "集成与开放能力", "p_meego_ipd": "集成与开放能力", "p_meego_ltc": "集成与开放能力" }, "type": "BOOL" },
+    { "id": "c1764589965561", "name": "数据报表", "scope": "TENANT", "fid": "", "categoryMap": { "p_basic": "进阶管理" }, "type": "BOOL" },
+    { "id": "c1764589984325", "name": "跨境互通", "scope": "TENANT", "fid": "", "categoryMap": { "p_basic": "工作协同" }, "type": "BOOL" },
+    { "id": "c1764590014700", "name": "IP白名单", "scope": "TENANT", "fid": "", "categoryMap": { "p_basic": "管理与控制" }, "type": "BOOL" }
   ],
   "rules": [
-    {
-      "id": "r1",
-      "level": "COMMERCIAL",
-      "type": "DEPEND",
-      "desc": "企业互联需基础安全",
-      "src": "c_cross_org",
-      "tgt": "c_sec_basic"
-    },
-    {
-      "id": "r1764590169057",
-      "level": "COMMERCIAL",
-      "type": "DEPEND",
-      "desc": "Project Premium才可用IPD高级功能",
-      "src": "s1764590114085",
-      "tgt": "sku_mp_prm"
-    },
-    {
-      "id": "r1764590302491",
-      "level": "COMMERCIAL",
-      "type": "DEPEND",
-      "desc": "品牌定制仅支持Premium及以上产品",
-      "src": "s1764590254369",
-      "tgt": "sku_mp_prm"
-    },
-    {
-      "id": "r1764591898971",
-      "level": "COMMERCIAL",
-      "type": "DEPEND",
-      "desc": "AI不能独立存在",
-      "src": "p1764591867940",
-      "tgt": [
-        "p_meego_prj",
-        "p_meego_ipd",
-        "p_meego_ltc"
-      ]
-    },
-    {
-      "id": "r1764592044755",
-      "level": "COMMERCIAL",
-      "type": "DEPEND",
-      "desc": "Basic Platform高级功能-买赠",
-      "src": "s1764591955877",
-      "tgt": [
-        "sku_mp_prm",
-        "sku_mp_ent"
-      ]
-    }
+    { "id": "r1", "level": "COMMERCIAL", "type": "DEPEND", "desc": "企业互联需基础安全", "src": "c_cross_org", "tgt": "c_sec_basic" },
+    { "id": "r1764590169057", "level": "COMMERCIAL", "type": "DEPEND", "desc": "Project Premium才可用IPD高级功能", "src": "s1764590114085", "tgt": "sku_mp_prm" },
+    { "id": "r1764590302491", "level": "COMMERCIAL", "type": "DEPEND", "desc": "品牌定制仅支持Premium及以上产品", "src": "s1764590254369", "tgt": "sku_mp_prm" },
+    { "id": "r1764591898971", "level": "COMMERCIAL", "type": "DEPEND", "desc": "AI不能独立存在", "src": "p1764591867940", "tgt": ["p_meego_prj", "p_meego_ipd", "p_meego_ltc"] },
+    { "id": "r1764592044755", "level": "COMMERCIAL", "type": "DEPEND", "desc": "Basic Platform高级功能-买赠", "src": "s1764591955877", "tgt": ["sku_mp_prm", "sku_mp_ent"] }
   ],
   "skus": [
     {
@@ -1230,19 +694,8 @@
       "name": "Standard",
       "desc": "适合小型团队快速上手",
       "level": 1,
-      "ents": {
-        "c_base_work": true,
-        "c_gantt": true,
-        "c_sec_basic": true,
-        "c_api": true,
-        "c_auto_rule": 100
-      },
-      "pricing": [
-        {
-          "mode": "PER_USER_MO",
-          "price": 8
-        }
-      ]
+      "ents": { "c_base_work": true, "c_gantt": true, "c_sec_basic": true, "c_api": true, "c_auto_rule": 100 },
+      "pricing": [{ "mode": "PER_USER_MO", "price": 8 }]
     },
     {
       "id": "sku_mp_prm",
@@ -1251,23 +704,8 @@
       "name": "Premium",
       "desc": "助力中型企业高效协作",
       "level": 2,
-      "ents": {
-        "c_base_work": true,
-        "c_gantt": true,
-        "c_sec_basic": true,
-        "c_api": true,
-        "c_calc_field": true,
-        "c_global_v": true,
-        "c_cross_org": true,
-        "c_adv_perm": true,
-        "c_auto_rule": 1000
-      },
-      "pricing": [
-        {
-          "mode": "PER_USER_MO",
-          "price": 12
-        }
-      ]
+      "ents": { "c_base_work": true, "c_gantt": true, "c_sec_basic": true, "c_api": true, "c_calc_field": true, "c_global_v": true, "c_cross_org": true, "c_adv_perm": true, "c_auto_rule": 1000 },
+      "pricing": [{ "mode": "PER_USER_MO", "price": 12 }]
     },
     {
       "id": "sku_mp_ent",
@@ -1276,26 +714,8 @@
       "name": "Enterprise",
       "desc": "大型组织的旗舰之选",
       "level": 3,
-      "ents": {
-        "c_base_work": true,
-        "c_gantt": true,
-        "c_sec_basic": true,
-        "c_api": true,
-        "c_calc_field": true,
-        "c_global_v": true,
-        "c_cross_org": true,
-        "c_adv_perm": true,
-        "c_auto_rule": 10000,
-        "c_branding": true,
-        "c_migrate": true,
-        "c_plugins": true
-      },
-      "pricing": [
-        {
-          "mode": "CUSTOM",
-          "price": 0
-        }
-      ]
+      "ents": { "c_base_work": true, "c_gantt": true, "c_sec_basic": true, "c_api": true, "c_calc_field": true, "c_global_v": true, "c_cross_org": true, "c_adv_perm": true, "c_auto_rule": 10000, "c_branding": true, "c_migrate": true, "c_plugins": true },
+      "pricing": [{ "mode": "CUSTOM", "price": 0 }]
     },
     {
       "id": "sku_mp_auto_plus",
@@ -1303,15 +723,8 @@
       "type": "ADDON",
       "name": "Auto+ Pack",
       "desc": "增加 5000 次自动化执行",
-      "ents": {
-        "c_auto_rule": 5000
-      },
-      "pricing": [
-        {
-          "mode": "FLAT_MO",
-          "price": 100
-        }
-      ]
+      "ents": { "c_auto_rule": 5000 },
+      "pricing": [{ "mode": "FLAT_MO", "price": 100 }]
     },
     {
       "id": "s1764590114085",
@@ -1319,12 +732,7 @@
       "type": "ADDON",
       "name": "IPD高级功能",
       "desc": "",
-      "pricing": [
-        {
-          "mode": "PER_USER_MO",
-          "price": 5
-        }
-      ],
+      "pricing": [{ "mode": "PER_USER_MO", "price": 5 }],
       "level": 1,
       "ents": {}
     },
@@ -1334,12 +742,7 @@
       "type": "ADDON",
       "name": "品牌定制",
       "desc": "",
-      "pricing": [
-        {
-          "mode": "FLAT_YR",
-          "price": 70000
-        }
-      ],
+      "pricing": [{ "mode": "FLAT_YR", "price": 70000 }],
       "level": 1,
       "ents": {}
     },
@@ -1349,12 +752,7 @@
       "type": "PLAN",
       "name": "Basic",
       "desc": "",
-      "pricing": [
-        {
-          "mode": "PER_USER_MO",
-          "price": 0
-        }
-      ],
+      "pricing": [{ "mode": "PER_USER_MO", "price": 0 }],
       "level": 1,
       "ents": {}
     },
@@ -1364,21 +762,9 @@
       "type": "PLAN",
       "name": "Basic Premium",
       "desc": "",
-      "pricing": [
-        {
-          "mode": "PER_USER_MO",
-          "price": 0
-        }
-      ],
+      "pricing": [{ "mode": "PER_USER_MO", "price": 0 }],
       "level": 2,
-      "ents": {
-        "c1764582937003": true,
-        "c1764582972083": true,
-        "c1764590014700": true,
-        "c1764588662369": true,
-        "c1764589984325": true,
-        "c1764589965561": true
-      }
+      "ents": { "c1764582937003": true, "c1764582972083": true, "c1764590014700": true, "c1764588662369": true, "c1764589984325": true, "c1764589965561": true }
     }
   ],
   "tenants": [
@@ -1386,24 +772,14 @@
       "id": "t1",
       "name": "Li Auto",
       "subs": [
-        {
-          "skuId": "sku_mp_ent",
-          "seats": 2000,
-          "status": "Active",
-          "end": "2026-01-01"
-        }
+        { "skuId": "sku_mp_ent", "seats": 2000, "status": "Active", "end": "2026-01-01" }
       ]
     },
     {
       "id": "t2",
       "name": "NIO",
       "subs": [
-        {
-          "skuId": "sku_mp_prm",
-          "seats": 500,
-          "status": "Active",
-          "end": "2025-06-30"
-        }
+        { "skuId": "sku_mp_prm", "seats": 500, "status": "Active", "end": "2025-06-30" }
       ]
     }
   ]
@@ -1452,8 +828,8 @@
     }
 
     function initData() {
-        if(localStorage.getItem('saas_demo_v36')) {
-            let saved = JSON.parse(localStorage.getItem('saas_demo_v36'));
+        if(localStorage.getItem('saas_demo_v37')) {
+            let saved = JSON.parse(localStorage.getItem('saas_demo_v37'));
             saved = migrateData(saved);
             products = saved.products; features = saved.features; capabilities = saved.capabilities;
             rules = saved.rules; skus = saved.skus; tenants = saved.tenants;
@@ -1464,7 +840,7 @@
 
     function saveData() {
         const data = { products, features, capabilities, rules, skus, tenants };
-        localStorage.setItem('saas_demo_v36', JSON.stringify(data));
+        localStorage.setItem('saas_demo_v37', JSON.stringify(data));
     }
 
     function resetData(reload = true) {
@@ -1499,7 +875,7 @@
                 let imported = JSON.parse(e.target.result);
                 if(imported.products && imported.skus) {
                     imported = migrateData(imported); // Run migration on import
-                    localStorage.setItem('saas_demo_v36', JSON.stringify(imported));
+                    localStorage.setItem('saas_demo_v37', JSON.stringify(imported));
                     location.reload();
                 } else {
                     alert('Invalid configuration file format');
